@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Firestore, collection, doc, setDoc, getDoc, 
-updateDoc, deleteDoc, query, where, getDocs } from '@angular/fire/firestore';
+updateDoc, deleteDoc, query, where, getDocs, orderBy, limit, WhereFilterOp, addDoc } from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root'
@@ -77,6 +77,17 @@ export class Query {
     });
   }
 
+  // Crear documento con ID automático
+  async createDocumentWithAutoId(collectionName: string, data: any): Promise<string> {
+    await this.checkConnection();
+    return this.retryOperation(async () => {
+      const collectionRef = collection(this.firestore, collectionName);
+      const docRef = await addDoc(collectionRef, data);
+      console.log(`Documento creado exitosamente con ID automático: ${collectionName}/${docRef.id}`);
+      return docRef.id;
+    });
+  }
+
   // Obtener documento por ID
   async getDocument(collectionName: string, docId: string): Promise<any> {
     await this.checkConnection();
@@ -106,24 +117,55 @@ export class Query {
 
   // Eliminar documento
   async deleteDocument(collectionName: string, docId: string): Promise<void> {
-    try {
+    await this.checkConnection();
+    return this.retryOperation(async () => {
       const docRef = doc(this.firestore, collectionName, docId);
       await deleteDoc(docRef);
-    } catch (error) {
-      throw error;
-    }
+      console.log(`Documento eliminado exitosamente: ${collectionName}/${docId}`);
+    });
   }
 
-  // Consultar documentos con filtros
-  async queryDocuments(collectionName: string, field: string, operator: any, value: any): Promise<any[]> {
+  // Consultar documentos con filtros (versión simple - mantener compatibilidad)
+  async queryDocuments(
+    collectionName: string, 
+    conditions: Array<{field: string, operator: WhereFilterOp, value: any}> | string,
+    orderByField?: string,
+    orderDirection?: 'asc' | 'desc',
+    limitCount?: number
+  ): Promise<any[]> {
+    await this.checkConnection();
     return this.retryOperation(async () => {
       const collectionRef = collection(this.firestore, collectionName);
-      const q = query(collectionRef, where(field, operator, value));
+      let queryConstraints: any[] = [];
+
+      // Manejar tanto la interfaz antigua como la nueva
+      if (typeof conditions === 'string') {
+        // Interfaz antigua: queryDocuments(collection, field, operator, value)
+        const field = conditions;
+        const operator = orderByField as WhereFilterOp;
+        const value = orderDirection;
+        queryConstraints.push(where(field, operator, value));
+      } else {
+        // Nueva interfaz: queryDocuments(collection, conditions[], orderBy, direction, limit)
+        conditions.forEach(condition => {
+          queryConstraints.push(where(condition.field, condition.operator, condition.value));
+        });
+
+        if (orderByField) {
+          queryConstraints.push(orderBy(orderByField, orderDirection || 'desc'));
+        }
+
+        if (limitCount) {
+          queryConstraints.push(limit(limitCount));
+        }
+      }
+
+      const q = query(collectionRef, ...queryConstraints);
       const querySnapshot = await getDocs(q);
       
       const documents: any[] = [];
       querySnapshot.forEach((doc) => {
-        documents.push({ id: doc.id, ...doc.data() });
+        documents.push({ id: doc.id, data: doc.data() });
       });
       
       console.log(`Consulta ejecutada exitosamente: ${collectionName} (${documents.length} documentos)`);

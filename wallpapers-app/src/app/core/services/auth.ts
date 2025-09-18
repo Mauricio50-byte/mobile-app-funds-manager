@@ -3,14 +3,7 @@ import { Auth as FirebaseAuth, createUserWithEmailAndPassword, signInWithEmailAn
 import { Observable } from 'rxjs';
 import { authState } from '@angular/fire/auth';
 import { Query } from './query';
-
-export interface UserData {
-  name: string;
-  lastName: string;
-  email: string;
-  uid: string;
-  createdAt: Date;
-}
+import { UserData } from '../interfaces';
 
 @Injectable({
   providedIn: 'root'
