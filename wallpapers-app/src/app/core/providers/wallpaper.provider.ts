@@ -20,9 +20,7 @@ export class WallpaperProvider {
     private uploader: Uploader
   ) {}
 
-  /**
-   * Crea un nuevo wallpaper
-   */
+  // Crea un nuevo wallpaper
   async createWallpaper(wallpaperData: CreateWallpaperData): Promise<WallpaperData> {
     try {
       const currentUser = this.authProvider.getCurrentUser();
@@ -31,18 +29,19 @@ export class WallpaperProvider {
       }
 
       // Subir la imagen
-      const uploadResult: UploadResult = await this.uploader.uploadFile(
-        wallpaperData.imageFile,
-        `wallpapers/${currentUser.uid}`
-      );
+      const uploadResult: UploadResult = await this.uploader.uploadImage(wallpaperData.imageFile);
+
+      if (!uploadResult.success) {
+        throw new Error(uploadResult.error || 'Error al subir la imagen');
+      }
 
       // Crear el documento del wallpaper
       const newWallpaper: Omit<WallpaperData, 'id'> = {
         userId: currentUser.uid,
         title: wallpaperData.title,
         description: wallpaperData.description,
-        imageUrl: uploadResult.downloadURL,
-        imagePath: uploadResult.fullPath,
+        imageUrl: uploadResult.url!,
+        imagePath: uploadResult.path!,
         tags: wallpaperData.tags || [],
         isPublic: wallpaperData.isPublic,
         createdAt: new Date(),
@@ -61,9 +60,8 @@ export class WallpaperProvider {
     }
   }
 
-  /**
-   * Obtiene wallpapers del usuario actual
-   */
+   //Obtiene wallpapers del usuario actual
+
   async getUserWallpapers(filter?: Partial<WallpaperFilter>): Promise<WallpaperData[]> {
     try {
       const currentUser = this.authProvider.getCurrentUser();
@@ -71,14 +69,14 @@ export class WallpaperProvider {
         throw new Error('Usuario no autenticado');
       }
 
-      const conditions = [
-        { field: 'userId', operator: '==' as const, value: currentUser.uid }
+      const conditions: Array<{field: string, operator: any, value: any}> = [
+        { field: 'userId', operator: '==', value: currentUser.uid }
       ];
 
       if (filter?.tags && filter.tags.length > 0) {
         conditions.push({
           field: 'tags',
-          operator: 'array-contains-any' as const,
+          operator: 'array-contains-any',
           value: filter.tags
         });
       }
@@ -101,19 +99,19 @@ export class WallpaperProvider {
     }
   }
 
-  /**
-   * Obtiene wallpapers públicos
-   */
+
+   // Obtiene wallpapers públicos
+
   async getPublicWallpapers(filter?: Partial<WallpaperFilter>): Promise<WallpaperData[]> {
     try {
-      const conditions = [
-        { field: 'isPublic', operator: '==' as const, value: true }
+      const conditions: Array<{field: string, operator: any, value: any}> = [
+        { field: 'isPublic', operator: '==', value: true }
       ];
 
       if (filter?.tags && filter.tags.length > 0) {
         conditions.push({
           field: 'tags',
-          operator: 'array-contains-any' as const,
+          operator: 'array-contains-any',
           value: filter.tags
         });
       }
@@ -136,9 +134,7 @@ export class WallpaperProvider {
     }
   }
 
-  /**
-   * Obtiene un wallpaper por ID
-   */
+   // Obtiene un wallpaper por ID
   async getWallpaperById(id: string): Promise<WallpaperData | null> {
     try {
       const wallpaper = await this.query.getDocument('wallpapers', id);
@@ -194,7 +190,7 @@ export class WallpaperProvider {
       }
 
       // Eliminar la imagen del storage
-      await this.uploader.deleteFile(wallpaper.imagePath);
+      await this.uploader.deleteImage(wallpaper.imagePath);
 
       // Eliminar el documento
       await this.query.deleteDocument('wallpapers', id);
@@ -209,16 +205,15 @@ export class WallpaperProvider {
    */
   async searchWallpapers(searchTerm: string, isPublicOnly: boolean = true): Promise<WallpaperData[]> {
     try {
-      // Nota: Firestore no soporta búsqueda de texto completo nativa
       // Esta es una implementación básica que obtiene todos los documentos y filtra
-      const conditions = [];
+      const conditions: Array<{field: string, operator: any, value: any}> = [];
       
       if (isPublicOnly) {
-        conditions.push({ field: 'isPublic', operator: '==' as const, value: true });
+        conditions.push({ field: 'isPublic', operator: '==', value: true });
       } else {
         const currentUser = this.authProvider.getCurrentUser();
         if (currentUser) {
-          conditions.push({ field: 'userId', operator: '==' as const, value: currentUser.uid });
+          conditions.push({ field: 'userId', operator: '==', value: currentUser.uid });
         }
       }
 

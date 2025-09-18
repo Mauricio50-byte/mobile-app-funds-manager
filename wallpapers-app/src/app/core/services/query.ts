@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Firestore, collection, doc, setDoc, getDoc, 
-updateDoc, deleteDoc, query, where, getDocs, orderBy, limit, WhereFilterOp, addDoc } from '@angular/fire/firestore';
+updateDoc, deleteDoc, query, where, getDocs, orderBy, 
+limit, WhereFilterOp, addDoc } from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root'
@@ -165,7 +166,7 @@ export class Query {
       
       const documents: any[] = [];
       querySnapshot.forEach((doc) => {
-        documents.push({ id: doc.id, data: doc.data() });
+        documents.push({ id: doc.id, ...doc.data() });
       });
       
       console.log(`Consulta ejecutada exitosamente: ${collectionName} (${documents.length} documentos)`);
