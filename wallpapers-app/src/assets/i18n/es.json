@@ -45,6 +45,9 @@
   "messages": {
     "loginSuccess": "Inicio de sesión exitoso",
     "loginError": "Error al iniciar sesión. Verifica tus credenciales.",
+    "invalidCredentials": "Credenciales inválidas. Verifica tu email y contraseña.",
+    "userDisabled": "Esta cuenta ha sido deshabilitada. Contacta al administrador.",
+    "tooManyRequests": "Demasiados intentos fallidos. Intenta nuevamente más tarde.",
     "registerSuccess": "Registro exitoso. ¡Bienvenido!",
     "registerError": "Error al registrarse. Inténtalo de nuevo.",
     "emailInUse": "Este correo electrónico ya está registrado. Si tienes una cuenta con Google, intenta iniciar sesión con Google.",
@@ -56,10 +59,53 @@
     "popupBlocked": "El popup fue bloqueado por el navegador. Permite popups para este sitio.",
     "unauthorizedDomain": "Dominio no autorizado. Configura el dominio en Firebase Console.",
     "insufficientPermissions": "Permisos insuficientes. Verifica la configuración de Firestore.",
-    "firestoreConfigRequired": "Se requiere configurar las reglas de Firestore. Contacta al administrador."
+    "firestoreConfigRequired": "Se requiere configurar las reglas de Firestore. Contacta al administrador.",
+    "loginRequired": "Debes iniciar sesión para acceder a esta función"
+  },
+  "errors": {
+    "networkError": "Error de conexión. Verifica tu conexión a internet.",
+    "badRequest": "Solicitud incorrecta. Verifica los datos enviados.",
+    "unauthorized": "No autorizado. Inicia sesión nuevamente.",
+    "forbidden": "Acceso denegado. No tienes permisos para esta acción.",
+    "notFound": "Recurso no encontrado.",
+    "serverError": "Error interno del servidor. Inténtalo más tarde.",
+    "serviceUnavailable": "Servicio no disponible. Inténtalo más tarde.",
+    "unknownError": "Error desconocido. Inténtalo nuevamente."
   },
   "language": {
     "spanish": "Español",
     "english": "English"
+  },
+  "home": {
+    "title": "Galería de Fondos",
+    "welcome": "¡Bienvenido de vuelta!",
+    "subtitle": "Descubre y gestiona tus fondos de pantalla favoritos",
+    "quickActions": "Acciones Rápidas",
+    "updateProfile": "Actualizar Mi Perfil",
+    "updateProfileDesc": "Modifica tu información personal y preferencias de cuenta",
+    "myWallpapers": "Mi Galería Personal",
+    "myWallpapersDesc": "Explora y organiza tu colección personal de fondos de pantalla",
+    "uploadWallpaper": "Subir Nuevo Fondo",
+    "uploadWallpaperDesc": "Comparte tus imágenes favoritas con la comunidad",
+    "settings": "Configuración",
+    "help": "Ayuda"
+  },
+  "updateUserInfo": {
+    "title": "Actualizar Información",
+    "welcome": "Actualiza tu Perfil",
+    "subtitle": "Mantén tu información personal actualizada",
+    "namePlaceholder": "Ingresa tu nombre",
+    "lastNamePlaceholder": "Ingresa tu apellido",
+    "emailPlaceholder": "Ingresa tu correo electrónico",
+    "phone": "Teléfono",
+    "phonePlaceholder": "Ingresa tu número de teléfono",
+    "bio": "Biografía",
+    "bioPlaceholder": "Cuéntanos un poco sobre ti...",
+    "profilePicture": "Foto de Perfil",
+    "changePicture": "Cambiar Foto",
+    "updateButton": "Actualizar Información",
+    "updateSuccess": "Información actualizada exitosamente",
+    "updateError": "Error al actualizar la información",
+    "loadError": "Error al cargar los datos del usuario"
   }
 }

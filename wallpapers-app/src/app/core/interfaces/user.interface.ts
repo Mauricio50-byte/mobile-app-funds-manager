@@ -3,7 +3,10 @@ export interface UserData {
   lastName: string;
   email: string;
   uid: string;
+  phone?: string;
+  bio?: string;
   createdAt: Date;
+  updatedAt?: Date;
 }
 
 export interface LoginCredentials {

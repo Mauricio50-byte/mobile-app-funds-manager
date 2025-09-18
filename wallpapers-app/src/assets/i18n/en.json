@@ -45,6 +45,9 @@
   "messages": {
     "loginSuccess": "Login successful",
     "loginError": "Login error. Please check your credentials.",
+    "invalidCredentials": "Invalid credentials. Please check your email and password.",
+    "userDisabled": "This account has been disabled. Contact administrator.",
+    "tooManyRequests": "Too many failed attempts. Please try again later.",
     "registerSuccess": "Registration successful. Welcome!",
     "registerError": "Registration error. Please try again.",
     "emailInUse": "This email is already registered. If you have a Google account, try signing in with Google.",
@@ -56,10 +59,53 @@
     "popupBlocked": "Popup was blocked by browser. Please allow popups for this site.",
     "unauthorizedDomain": "Unauthorized domain. Configure domain in Firebase Console.",
     "insufficientPermissions": "Insufficient permissions. Check Firestore configuration.",
-    "firestoreConfigRequired": "Firestore rules configuration required. Contact administrator."
+    "firestoreConfigRequired": "Firestore rules configuration required. Contact administrator.",
+    "loginRequired": "You must log in to access this feature"
+  },
+  "errors": {
+    "networkError": "Connection error. Check your internet connection.",
+    "badRequest": "Bad request. Check the data sent.",
+    "unauthorized": "Unauthorized. Please log in again.",
+    "forbidden": "Access denied. You don't have permissions for this action.",
+    "notFound": "Resource not found.",
+    "serverError": "Internal server error. Try again later.",
+    "serviceUnavailable": "Service unavailable. Try again later.",
+    "unknownError": "Unknown error. Please try again."
   },
   "language": {
     "spanish": "Español",
     "english": "English"
+  },
+  "home": {
+    "title": "Wallpaper Gallery",
+    "welcome": "Welcome back!",
+    "subtitle": "Discover and manage your favorite wallpapers",
+    "quickActions": "Quick Actions",
+    "updateProfile": "Update My Profile",
+    "updateProfileDesc": "Modify your personal information and account preferences",
+    "myWallpapers": "My Personal Gallery",
+    "myWallpapersDesc": "Explore and organize your personal wallpaper collection",
+    "uploadWallpaper": "Upload New Wallpaper",
+    "uploadWallpaperDesc": "Share your favorite images with the community",
+    "settings": "Settings",
+    "help": "Help"
+  },
+  "updateUserInfo": {
+    "title": "Update Information",
+    "welcome": "Update Your Profile",
+    "subtitle": "Keep your personal information up to date",
+    "namePlaceholder": "Enter your name",
+    "lastNamePlaceholder": "Enter your last name",
+    "emailPlaceholder": "Enter your email address",
+    "phone": "Phone",
+    "phonePlaceholder": "Enter your phone number",
+    "bio": "Biography",
+    "bioPlaceholder": "Tell us a little about yourself...",
+    "profilePicture": "Profile Picture",
+    "changePicture": "Change Picture",
+    "updateButton": "Update Information",
+    "updateSuccess": "Information updated successfully",
+    "updateError": "Error updating information",
+    "loadError": "Error loading user data"
   }
 }

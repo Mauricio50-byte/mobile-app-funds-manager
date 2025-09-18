@@ -1,13 +1,121 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>update-user-info</ion-title>
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ translationService.translate('updateUserInfo.title') }}</ion-title>
+    <ion-buttons slot="end">
+      <app-language-toggle></app-language-toggle>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" class="ion-padding">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">update-user-info</ion-title>
+      <ion-title size="large">{{ translationService.translate('updateUserInfo.title') }}</ion-title>
     </ion-toolbar>
   </ion-header>
+
+  <div class="update-container">
+    <!-- Header Section -->
+    <div class="header-section">
+      <ion-icon name="person-circle-outline" size="large" color="primary"></ion-icon>
+      <h1>{{ translationService.translate('updateUserInfo.welcome') }}</h1>
+      <p>{{ translationService.translate('updateUserInfo.subtitle') }}</p>
+    </div>
+
+    <!-- Update Form -->
+    <form [formGroup]="updateForm" (ngSubmit)="onUpdateUserInfo()">
+      <!-- Name Field -->
+      <app-input
+        [label]="translationService.translate('common.name')"
+        type="text"
+        [placeholder]="translationService.translate('updateUserInfo.namePlaceholder')"
+        formControlName="name"
+        [showError]="!!(updateForm.get('name')?.invalid && updateForm.get('name')?.touched)"
+        [errorMessage]="getNameErrorMessage()">
+      </app-input>
+
+      <!-- Last Name Field -->
+      <app-input
+        [label]="translationService.translate('common.lastName')"
+        type="text"
+        [placeholder]="translationService.translate('updateUserInfo.lastNamePlaceholder')"
+        formControlName="lastName"
+        [showError]="!!(updateForm.get('lastName')?.invalid && updateForm.get('lastName')?.touched)"
+        [errorMessage]="getLastNameErrorMessage()">
+      </app-input>
+
+      <!-- Email Field (Read-only) -->
+      <app-input
+        [label]="translationService.translate('common.email')"
+        type="email"
+        [placeholder]="translationService.translate('updateUserInfo.emailPlaceholder')"
+        formControlName="email"
+        [disabled]="true"
+        [showError]="false">
+      </app-input>
+
+      <!-- Phone Field -->
+      <app-input
+        [label]="translationService.translate('updateUserInfo.phone')"
+        type="tel"
+        [placeholder]="translationService.translate('updateUserInfo.phonePlaceholder')"
+        formControlName="phone">
+      </app-input>
+
+      <!-- Bio Field -->
+      <div class="bio-field">
+        <ion-item>
+          <ion-label position="stacked">{{ translationService.translate('updateUserInfo.bio') }}</ion-label>
+          <ion-textarea
+            formControlName="bio"
+            [placeholder]="translationService.translate('updateUserInfo.bioPlaceholder')"
+            rows="4"
+            maxlength="200">
+          </ion-textarea>
+        </ion-item>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="button-container">
+        <app-button
+          [text]="translationService.translate('updateUserInfo.updateButton')"
+          type="submit"
+          color="primary"
+          [disabled]="updateForm.invalid || isLoading"
+          [loading]="isLoading">
+        </app-button>
+
+        <app-button
+          [text]="translationService.translate('common.cancel')"
+          type="button"
+          color="medium"
+          fill="outline"
+          [disabled]="isLoading"
+          (buttonClick)="goBack()">
+        </app-button>
+      </div>
+    </form>
+
+    <!-- Profile Picture Section -->
+    <div class="profile-picture-section">
+      <h3>{{ translationService.translate('updateUserInfo.profilePicture') }}</h3>
+      <div class="picture-container">
+        <ion-avatar class="profile-avatar">
+          <ion-icon name="person-outline"></ion-icon>
+        </ion-avatar>
+        <app-button
+          [text]="translationService.translate('updateUserInfo.changePicture')"
+          color="secondary"
+          fill="outline"
+          size="small"
+          [disabled]="isLoading">
+        </app-button>
+      </div>
+    </div>
+  </div>
 </ion-content>

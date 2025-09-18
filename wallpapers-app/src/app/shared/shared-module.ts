@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
 import { IonicModule } from '@ionic/angular';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
@@ -15,6 +16,7 @@ import { LanguageToggleComponent } from './components/language-toggle/language-t
   ],
   imports: [
     CommonModule,
+    HttpClientModule,
     IonicModule,
     ReactiveFormsModule,
     FormsModule
@@ -22,7 +24,8 @@ import { LanguageToggleComponent } from './components/language-toggle/language-t
   exports: [
     ButtonComponent,
     InputComponent,
-    LanguageToggleComponent
+    LanguageToggleComponent,
+    HttpClientModule
   ]
 })
 export class SharedModule { }

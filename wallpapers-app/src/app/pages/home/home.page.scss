@@ -1,0 +1,142 @@
+.home-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 20px 0;
+}
+
+.welcome-section {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 20px;
+  
+  ion-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+  }
+  
+  h1 {
+    color: var(--ion-color-primary);
+    font-size: 28px;
+    font-weight: bold;
+    margin: 10px 0;
+  }
+  
+  p {
+    color: var(--ion-color-medium);
+    font-size: 16px;
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+.quick-actions {
+  flex: 1;
+  
+  h2 {
+    color: var(--ion-color-dark);
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 20px 0;
+    padding: 0 16px;
+  }
+}
+
+.action-card {
+  margin: 0 0 16px 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+  
+  ion-card-content {
+    padding: 20px;
+  }
+}
+
+.card-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  
+  ion-icon:first-child {
+    font-size: 48px;
+    flex-shrink: 0;
+  }
+  
+  ion-icon:last-child {
+    font-size: 20px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+}
+
+.card-text {
+  flex: 1;
+  
+  h3 {
+    color: var(--ion-color-dark);
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+  }
+  
+  p {
+    color: var(--ion-color-medium);
+    font-size: 14px;
+    margin: 0;
+    line-height: 1.4;
+  }
+}
+
+ion-fab {
+  ion-fab-button {
+    --box-shadow: 0 4px 16px rgba(var(--ion-color-primary-rgb), 0.3);
+    
+    &:hover {
+      --box-shadow: 0 6px 20px rgba(var(--ion-color-primary-rgb), 0.4);
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .home-container {
+    padding: 10px 0;
+  }
+  
+  .welcome-section {
+    margin-bottom: 30px;
+    padding: 15px;
+    
+    ion-icon {
+      font-size: 60px;
+    }
+    
+    h1 {
+      font-size: 24px;
+    }
+  }
+  
+  .card-content {
+    gap: 12px;
+    
+    ion-icon:first-child {
+      font-size: 40px;
+    }
+  }
+  
+  .card-text {
+    h3 {
+      font-size: 16px;
+    }
+    
+    p {
+      font-size: 13px;
+    }
+  }
+}

@@ -1,0 +1,173 @@
+.update-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px 0;
+
+  .header-section {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+
+    ion-icon {
+      margin-bottom: 16px;
+      color: var(--ion-color-primary);
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      color: var(--ion-color-dark);
+    }
+
+    p {
+      font-size: 16px;
+      color: var(--ion-color-medium);
+      margin: 0;
+      line-height: 1.4;
+    }
+  }
+
+  form {
+    margin-bottom: 30px;
+
+    app-input {
+      margin-bottom: 16px;
+    }
+
+    .bio-field {
+      margin-bottom: 20px;
+
+      ion-item {
+        --border-radius: 12px;
+        --background: var(--ion-color-light);
+        margin-bottom: 8px;
+
+        ion-label {
+          font-weight: 500;
+          color: var(--ion-color-dark);
+        }
+
+        ion-textarea {
+          --color: var(--ion-color-dark);
+          font-size: 16px;
+        }
+      }
+    }
+
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 24px;
+
+      app-button {
+        width: 100%;
+      }
+    }
+  }
+
+  .profile-picture-section {
+    background: var(--ion-color-light);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 20px 0;
+      color: var(--ion-color-dark);
+    }
+
+    .picture-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+
+      .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border: 3px solid var(--ion-color-primary);
+
+        ion-icon {
+          font-size: 40px;
+          color: var(--ion-color-medium);
+        }
+      }
+
+      app-button {
+        max-width: 200px;
+      }
+    }
+  }
+}
+
+// Responsive Design
+@media (min-width: 768px) {
+  .update-container {
+    padding: 40px 20px;
+
+    .header-section {
+      padding: 30px;
+    }
+
+    form {
+      .button-container {
+        flex-direction: row;
+        justify-content: space-between;
+
+        app-button {
+          flex: 1;
+          max-width: 48%;
+        }
+      }
+    }
+
+    .profile-picture-section {
+      .picture-container {
+        flex-direction: row;
+        justify-content: center;
+
+        .profile-avatar {
+          width: 100px;
+          height: 100px;
+        }
+      }
+    }
+  }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .update-container {
+    .header-section {
+      h1 {
+        color: var(--ion-color-light);
+      }
+    }
+
+    .bio-field {
+      ion-item {
+        --background: var(--ion-color-dark-shade);
+
+        ion-label {
+          color: var(--ion-color-light);
+        }
+
+        ion-textarea {
+          --color: var(--ion-color-light);
+        }
+      }
+    }
+
+    .profile-picture-section {
+      background: var(--ion-color-dark-shade);
+
+      h3 {
+        color: var(--ion-color-light);
+      }
+    }
+  }
+}

@@ -35,10 +35,8 @@ export class Query {
     return errorMessage.includes('network') || 
           errorMessage.includes('offline') || 
           errorMessage.includes('connection') ||
-          errorMessage.includes('aborted') ||
           errorCode.includes('unavailable') ||
-          errorCode.includes('deadline-exceeded') ||
-          errorCode.includes('network-error');
+          errorCode.includes('deadline-exceeded');
   }
 
   // Mecanismo de reintentos para operaciones de Firestore

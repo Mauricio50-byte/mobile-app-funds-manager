@@ -56,8 +56,31 @@ export class LoginPage implements OnInit, OnDestroy {
         this.router.navigate(['/home']);
       } catch (error: any) {
         console.error('Error en login:', error);
-        const errorMessage = this.translationService.translate('messages.loginError');
-        await this.toast.showError(`${errorMessage}: ${error.message}`);
+        let errorMessage = this.translationService.translate('messages.loginError');
+        
+        // Manejo específico de errores de Firebase
+        if (error.code) {
+          switch (error.code) {
+            case 'auth/user-not-found':
+            case 'auth/wrong-password':
+            case 'auth/invalid-credential':
+              errorMessage = this.translationService.translate('messages.invalidCredentials');
+              break;
+            case 'auth/user-disabled':
+              errorMessage = this.translationService.translate('messages.userDisabled');
+              break;
+            case 'auth/too-many-requests':
+              errorMessage = this.translationService.translate('messages.tooManyRequests');
+              break;
+            case 'auth/network-request-failed':
+              errorMessage = this.translationService.translate('errors.networkError');
+              break;
+            default:
+              errorMessage = `${errorMessage}: ${error.message}`;
+          }
+        }
+        
+        await this.toast.showError(errorMessage);
       } finally {
         this.isLoading = false;
       }
@@ -78,7 +101,23 @@ export class LoginPage implements OnInit, OnDestroy {
       this.router.navigate(['/home']);
     } catch (error: any) {
       console.error('Error en Google login:', error);
-      const errorMessage = this.translationService.translate('messages.googleLoginError');
+      let errorMessage = this.translationService.translate('messages.googleLoginError');
+      
+      // Manejo específico de errores de Google login
+      if (error.message) {
+        if (error.message.includes('popup')) {
+          if (error.message.includes('closed')) {
+            errorMessage = this.translationService.translate('messages.popupClosedByUser');
+          } else if (error.message.includes('blocked')) {
+            errorMessage = this.translationService.translate('messages.popupBlocked');
+          }
+        } else if (error.message.includes('network') || error.message.includes('conexión')) {
+          errorMessage = this.translationService.translate('errors.networkError');
+        } else if (error.message.includes('Firestore') || error.message.includes('database')) {
+          errorMessage = this.translationService.translate('messages.firestoreConfigRequired');
+        }
+      }
+      
       await this.toast.showError(errorMessage);
     } finally {
       this.isLoading = false;

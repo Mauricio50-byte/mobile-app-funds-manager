@@ -52,9 +52,30 @@ export class Auth {
   // Método para iniciar sesión
   async login(email: string, password: string): Promise<any> {
     try {
+      console.log('Intentando login con email:', email);
       const result = await signInWithEmailAndPassword(this.firebaseAuth, email, password);
+      console.log('Login exitoso para usuario:', result.user?.uid);
+      
+      // Verificar y reparar datos de usuario si es necesario
+      await this.verifyAndRepairUserData();
+      
       return result;
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error en login:', error);
+      
+      // Mejorar el manejo de errores específicos
+      if (error.code === 'auth/network-request-failed') {
+        throw new Error('Error de conexión. Verifica tu conexión a internet.');
+      } else if (error.code === 'auth/too-many-requests') {
+        throw new Error('Demasiados intentos fallidos. Intenta nuevamente más tarde.');
+      } else if (error.code === 'auth/user-disabled') {
+        throw new Error('Esta cuenta ha sido deshabilitada.');
+      } else if (error.code === 'auth/user-not-found' || 
+                 error.code === 'auth/wrong-password' || 
+                 error.code === 'auth/invalid-credential') {
+        throw new Error('Credenciales inválidas. Verifica tu email y contraseña.');
+      }
+      
       throw error;
     }
   }

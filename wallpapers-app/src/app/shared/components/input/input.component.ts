@@ -20,9 +20,9 @@ export class InputComponent implements ControlValueAccessor {
   @Input() type: string = 'text';
   @Input() errorMessage: string = '';
   @Input() showError: boolean = false;
+  @Input() disabled: boolean = false;
 
   value: string = '';
-  disabled: boolean = false;
   showPassword: boolean = false;
 
   get inputType(): string {
