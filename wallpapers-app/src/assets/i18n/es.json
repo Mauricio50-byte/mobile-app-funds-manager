@@ -1,0 +1,65 @@
+{
+  "common": {
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar Contraseña",
+    "name": "Nombre",
+    "lastName": "Apellido",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "accept": "Aceptar"
+  },
+  "login": {
+    "title": "Iniciar Sesión",
+    "subtitle": "Inicia sesión para acceder a tus fondos",
+    "emailPlaceholder": "Ingresa tu correo electrónico",
+    "passwordPlaceholder": "Ingresa tu contraseña",
+    "loginButton": "Iniciar Sesión",
+    "googleButton": "Iniciar sesión con Google",
+    "or": "o",
+    "noAccount": "¿No tienes cuenta?",
+    "registerLink": "Regístrate aquí"
+  },
+  "register": {
+    "title": "Registro",
+    "subtitle": "Crea tu cuenta para comenzar",
+    "namePlaceholder": "Ingresa tu nombre",
+    "lastNamePlaceholder": "Ingresa tu apellido",
+    "emailPlaceholder": "Ingresa tu correo electrónico",
+    "passwordPlaceholder": "Ingresa tu contraseña",
+    "confirmPasswordPlaceholder": "Confirma tu contraseña",
+    "registerButton": "Registrarse",
+    "googleButton": "Registrarse con Google",
+    "or": "o",
+    "hasAccount": "¿Ya tienes cuenta?",
+    "loginLink": "Inicia sesión aquí"
+  },
+  "validation": {
+    "required": "Este campo es requerido",
+    "email": "Ingresa un correo electrónico válido",
+    "minLength": "Debe tener al menos {{min}} caracteres",
+    "passwordMismatch": "Las contraseñas no coinciden"
+  },
+  "messages": {
+    "loginSuccess": "Inicio de sesión exitoso",
+    "loginError": "Error al iniciar sesión. Verifica tus credenciales.",
+    "registerSuccess": "Registro exitoso. ¡Bienvenido!",
+    "registerError": "Error al registrarse. Inténtalo de nuevo.",
+    "emailInUse": "Este correo electrónico ya está registrado. Si tienes una cuenta con Google, intenta iniciar sesión con Google.",
+    "weakPassword": "La contraseña es muy débil",
+    "invalidEmail": "Correo electrónico inválido",
+    "googleLoginError": "Error al iniciar sesión con Google. Inténtalo de nuevo.",
+    "googleRegisterError": "Error al registrarse con Google. Inténtalo de nuevo.",
+    "popupClosedByUser": "El popup fue cerrado por el usuario",
+    "popupBlocked": "El popup fue bloqueado por el navegador. Permite popups para este sitio.",
+    "unauthorizedDomain": "Dominio no autorizado. Configura el dominio en Firebase Console.",
+    "insufficientPermissions": "Permisos insuficientes. Verifica la configuración de Firestore.",
+    "firestoreConfigRequired": "Se requiere configurar las reglas de Firestore. Contacta al administrador."
+  },
+  "language": {
+    "spanish": "Español",
+    "english": "English"
+  }
+}

@@ -3,14 +3,15 @@ import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
-// Componentes compartidos implementados
 import { ButtonComponent } from './components/button/button.component';
 import { InputComponent } from './components/input/input.component';
+import { LanguageToggleComponent } from './components/language-toggle/language-toggle.component';
 
 @NgModule({
   declarations: [
     ButtonComponent,
-    InputComponent
+    InputComponent,
+    LanguageToggleComponent
   ],
   imports: [
     CommonModule,
@@ -20,7 +21,8 @@ import { InputComponent } from './components/input/input.component';
   ],
   exports: [
     ButtonComponent,
-    InputComponent
+    InputComponent,
+    LanguageToggleComponent
   ]
 })
 export class SharedModule { }

@@ -1,0 +1,157 @@
+.register-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100%;
+  padding: 20px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.logo-section {
+  text-align: center;
+  margin-bottom: 30px;
+
+  ion-icon {
+    margin-bottom: 15px;
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin: 10px 0;
+    color: var(--ion-color-primary);
+  }
+
+  p {
+    font-size: 16px;
+    color: var(--ion-color-medium);
+    margin: 0 0 20px 0;
+    line-height: 1.4;
+  }
+}
+
+form {
+  margin-bottom: 20px;
+
+  app-input {
+    margin-bottom: 16px;
+  }
+
+  .register-button {
+    margin-top: 20px;
+    width: 100%;
+  }
+}
+
+.separator {
+  display: flex;
+  align-items: center;
+  margin: 20px 0;
+  
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--ion-color-medium);
+    opacity: 0.3;
+  }
+  
+  span {
+    padding: 0 15px;
+    color: var(--ion-color-medium);
+    font-size: 14px;
+  }
+}
+
+.google-signin-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 50px;
+  background-color: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #3c4043;
+  transition: all 0.2s ease;
+  margin: 10px 0;
+  
+  &:hover {
+    box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.30), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+    background-color: #f8f9fa;
+  }
+  
+  &:active {
+    background-color: #f1f3f4;
+    box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.30), 0 2px 6px 2px rgba(60, 64, 67, 0.15);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    
+    &:hover {
+      background-color: #ffffff;
+      box-shadow: none;
+    }
+  }
+  
+  .google-icon {
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .google-text {
+    font-weight: 500;
+    letter-spacing: 0.25px;
+  }
+}
+
+.login-link {
+  text-align: center;
+  margin-top: 20px;
+
+  p {
+    font-size: 14px;
+    color: var(--ion-color-medium);
+    margin: 0 0 10px 0;
+  }
+
+  app-button {
+    --color: var(--ion-color-primary);
+  }
+}
+
+// Responsive design
+@media (max-width: 480px) {
+  .register-container {
+    padding: 15px;
+  }
+
+  .logo-section {
+    h1 {
+      font-size: 24px;
+    }
+
+    p {
+      font-size: 14px;
+    }
+  }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .logo-section {
+    h1 {
+      color: var(--ion-color-primary-tint);
+    }
+  }
+}

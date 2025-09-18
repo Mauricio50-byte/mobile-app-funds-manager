@@ -1,0 +1,9 @@
+<ion-button 
+  fill="clear" 
+  size="small" 
+  (click)="toggleLanguage()"
+  class="language-toggle">
+  <ion-icon name="language-outline" slot="start"></ion-icon>
+  <span class="language-text">{{ getLanguageText() }}</span>
+  <span class="language-flag">{{ getLanguageIcon() }}</span>
+</ion-button>
