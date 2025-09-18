@@ -23,6 +23,18 @@ export class InputComponent implements ControlValueAccessor {
 
   value: string = '';
   disabled: boolean = false;
+  showPassword: boolean = false;
+
+  get inputType(): string {
+    if (this.type === 'password') {
+      return this.showPassword ? 'text' : 'password';
+    }
+    return this.type;
+  }
+
+  get isPasswordField(): boolean {
+    return this.type === 'password';
+  }
 
   private onChange = (value: string) => {};
   private onTouched = () => {};
@@ -36,6 +48,10 @@ export class InputComponent implements ControlValueAccessor {
 
   onBlur() {
     this.onTouched();
+  }
+
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
   }
 
   // ControlValueAccessor methods

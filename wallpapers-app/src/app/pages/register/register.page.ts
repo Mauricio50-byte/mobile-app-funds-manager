@@ -70,7 +70,7 @@ export class RegisterPage implements OnInit, OnDestroy {
         
         const successMessage = this.translationService.translate('messages.registerSuccess');
         await this.toast.showSuccess(successMessage);
-        this.router.navigate(['/home']);
+        this.router.navigate(['/login']);
       } catch (error: any) {
         console.error('Error en registro:', error);
         

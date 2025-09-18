@@ -13,3 +13,14 @@ ion-item {
     display: block;
   }
 }
+
+.password-toggle-btn {
+  --color: var(--ion-color-medium);
+  --padding-start: 0;
+  --padding-end: 0;
+  margin: 0;
+  
+  &:hover {
+    --color: var(--ion-color-primary);
+  }
+}

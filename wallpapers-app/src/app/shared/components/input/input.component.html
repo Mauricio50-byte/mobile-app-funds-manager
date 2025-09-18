@@ -1,13 +1,24 @@
 <ion-item>
   <ion-label position="stacked" *ngIf="label">{{ label }}</ion-label>
   <ion-input 
-    [type]="type"
+    [type]="inputType"
     [placeholder]="placeholder"
     [value]="value"
     [disabled]="disabled"
     (ionInput)="onInput($event)"
     (ionBlur)="onBlur()">
   </ion-input>
+  <ion-button 
+    *ngIf="isPasswordField"
+    fill="clear" 
+    slot="end" 
+    (click)="togglePasswordVisibility()"
+    class="password-toggle-btn">
+    <ion-icon 
+      [name]="showPassword ? 'eye-off-outline' : 'eye-outline'" 
+      slot="icon-only">
+    </ion-icon>
+  </ion-button>
 </ion-item>
 <div class="error-message" *ngIf="showError && errorMessage">
   <span>{{ errorMessage }}</span>
