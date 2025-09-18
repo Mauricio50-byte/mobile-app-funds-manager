@@ -1,0 +1,14 @@
+<ion-item>
+  <ion-label position="stacked" *ngIf="label">{{ label }}</ion-label>
+  <ion-input 
+    [type]="type"
+    [placeholder]="placeholder"
+    [value]="value"
+    [disabled]="disabled"
+    (ionInput)="onInput($event)"
+    (ionBlur)="onBlur()">
+  </ion-input>
+</ion-item>
+<div class="error-message" *ngIf="showError && errorMessage">
+  <span>{{ errorMessage }}</span>
+</div>

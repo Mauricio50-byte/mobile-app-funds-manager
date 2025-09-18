@@ -1,0 +1,15 @@
+ion-item {
+  margin-bottom: 10px;
+  --border-radius: 8px;
+  --background: var(--ion-color-light);
+}
+
+.error-message {
+  color: var(--ion-color-danger);
+  font-size: 12px;
+  margin: 5px 15px 15px 15px;
+  
+  span {
+    display: block;
+  }
+}
