@@ -96,11 +96,20 @@
     
     ion-label {
       font-weight: 500;
+      color: var(--ion-color-dark) !important;
+      
+      &[position="stacked"] {
+        color: var(--ion-color-dark) !important;
+        font-weight: 600 !important;
+        font-size: 14px !important;
+        margin-bottom: 8px !important;
+      }
       
       h3 {
         margin: 0 0 4px 0;
         font-size: 16px;
         font-weight: 600;
+        color: var(--ion-color-dark);
       }
       
       p {
@@ -113,6 +122,23 @@
     ion-input, ion-textarea, ion-select {
       --padding-start: 12px;
       --padding-end: 12px;
+      --color: var(--ion-color-dark);
+      --placeholder-color: var(--ion-color-medium);
+    }
+    
+    ion-input {
+      --color: var(--ion-color-dark);
+      --placeholder-color: var(--ion-color-medium);
+    }
+    
+    ion-textarea {
+      --color: var(--ion-color-dark);
+      --placeholder-color: var(--ion-color-medium);
+    }
+    
+    ion-select {
+      --color: var(--ion-color-dark);
+      --placeholder-color: var(--ion-color-medium);
     }
     
     ion-toggle {
@@ -263,6 +289,27 @@
   .form-fields {
     ion-item {
       --background: var(--ion-color-dark);
+      
+      ion-input, ion-textarea, ion-select {
+        --color: var(--ion-color-light);
+        --placeholder-color: var(--ion-color-medium);
+      }
+      
+      ion-label {
+         color: var(--ion-color-light) !important;
+         
+         &[position="stacked"] {
+           color: var(--ion-color-light) !important;
+         }
+         
+         h3 {
+           color: var(--ion-color-light);
+         }
+         
+         p {
+           color: var(--ion-color-medium);
+         }
+       }
     }
   }
 }

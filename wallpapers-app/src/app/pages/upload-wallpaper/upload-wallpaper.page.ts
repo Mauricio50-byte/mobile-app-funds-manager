@@ -59,6 +59,33 @@ export class UploadWallpaperPage implements OnInit {
 
   async ngOnInit() {
     await this.loadCurrentUser();
+    
+    // Asegurar que las traducciones estén cargadas
+    await this.waitForTranslations();
+  }
+
+  private async waitForTranslations(): Promise<void> {
+    return new Promise((resolve) => {
+      // Verificar si las traducciones ya están disponibles
+      if (this.translationService.translate('upload.title') !== 'upload.title') {
+        resolve();
+        return;
+      }
+
+      // Esperar a que las traducciones se carguen
+      const subscription = this.translationService.currentLanguage$.subscribe(() => {
+        if (this.translationService.translate('upload.title') !== 'upload.title') {
+          subscription.unsubscribe();
+          resolve();
+        }
+      });
+
+      // Timeout de seguridad
+      setTimeout(() => {
+        subscription.unsubscribe();
+        resolve();
+      }, 3000);
+    });
   }
 
   private async loadCurrentUser() {

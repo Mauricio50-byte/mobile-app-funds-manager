@@ -18,8 +18,21 @@ export class AuthProvider {
     // Escuchar cambios en el estado de autenticación
     this.auth.onAuthStateChanged(async (user: User | null) => {
       if (user) {
-        const userData = await this.getUserData(user.uid);
-        this.currentUserSubject.next(userData);
+        try {
+          const userData = await this.getUserData(user.uid);
+          this.currentUserSubject.next(userData);
+        } catch (error) {
+          console.error('Error obteniendo datos del usuario en onAuthStateChanged:', error);
+          // Si no se pueden obtener los datos de Firestore, crear un usuario básico
+          const basicUserData: UserData = {
+            uid: user.uid,
+            name: user.displayName?.split(' ')[0] || 'Usuario',
+            lastName: user.displayName?.split(' ')[1] || '',
+            email: user.email || '',
+            createdAt: new Date()
+          };
+          this.currentUserSubject.next(basicUserData);
+        }
       } else {
         this.currentUserSubject.next(null);
       }

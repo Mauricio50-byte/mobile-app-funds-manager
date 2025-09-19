@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
+import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { LoadingController } from '@ionic/angular';
@@ -11,41 +11,32 @@ export class LoadingInterceptor implements HttpInterceptor {
 
   constructor(private loadingController: LoadingController) {}
 
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // No mostrar loading para requests de assets (traducciones, imágenes, etc.)
-    if (req.url.includes('assets/') || req.url.includes('.json')) {
-      return next.handle(req);
-    }
-
-    // Incrementar contador y mostrar loading si es necesario
-    this.loadingCount++;
+  intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     this.showLoading();
 
-    return next.handle(req).pipe(
+    return next.handle(request).pipe(
       finalize(() => {
-        // Decrementar contador y ocultar loading si es necesario
-        this.loadingCount--;
-        if (this.loadingCount === 0) {
-          this.hideLoading();
-        }
+        this.hideLoading();
       })
     );
   }
 
   private async showLoading() {
-    if (this.loadingCount === 1 && !this.loading) {
+    this.loadingCount++;
+    
+    if (this.loadingCount === 1) {
       this.loading = await this.loadingController.create({
         message: 'Cargando...',
-        spinner: 'crescent',
-        translucent: true,
-        cssClass: 'custom-loading'
+        spinner: 'crescent'
       });
       await this.loading.present();
     }
   }
 
   private async hideLoading() {
-    if (this.loading) {
+    this.loadingCount--;
+    
+    if (this.loadingCount === 0 && this.loading) {
       await this.loading.dismiss();
       this.loading = null;
     }

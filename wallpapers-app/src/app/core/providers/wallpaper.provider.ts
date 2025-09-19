@@ -37,10 +37,10 @@ export class WallpaperProvider {
 
       // Crear el documento del wallpaper
       const newWallpaper: Omit<WallpaperData, 'id'> = {
-        userId: currentUser.uid,
+        uid: currentUser.uid,
         title: wallpaperData.title,
         description: wallpaperData.description,
-        imageUrl: uploadResult.url!,
+        supabaseUrl: uploadResult.url!,
         imagePath: uploadResult.path!,
         tags: wallpaperData.tags || [],
         isPublic: wallpaperData.isPublic,
@@ -70,7 +70,7 @@ export class WallpaperProvider {
       }
 
       const conditions: Array<{field: string, operator: any, value: any}> = [
-        { field: 'userId', operator: '==', value: currentUser.uid }
+        { field: 'uid', operator: '==', value: currentUser.uid }
       ];
 
       if (filter?.tags && filter.tags.length > 0) {
@@ -157,7 +157,7 @@ export class WallpaperProvider {
 
       // Verificar que el wallpaper pertenece al usuario
       const wallpaper = await this.getWallpaperById(id);
-      if (!wallpaper || wallpaper.userId !== currentUser.uid) {
+      if (!wallpaper || wallpaper.uid !== currentUser.uid) {
         throw new Error('No tienes permisos para actualizar este wallpaper');
       }
 
@@ -185,7 +185,7 @@ export class WallpaperProvider {
 
       // Verificar que el wallpaper pertenece al usuario
       const wallpaper = await this.getWallpaperById(id);
-      if (!wallpaper || wallpaper.userId !== currentUser.uid) {
+      if (!wallpaper || wallpaper.uid !== currentUser.uid) {
         throw new Error('No tienes permisos para eliminar este wallpaper');
       }
 
@@ -213,7 +213,7 @@ export class WallpaperProvider {
       } else {
         const currentUser = this.authProvider.getCurrentUser();
         if (currentUser) {
-          conditions.push({ field: 'userId', operator: '==', value: currentUser.uid });
+          conditions.push({ field: 'uid', operator: '==', value: currentUser.uid });
         }
       }
 

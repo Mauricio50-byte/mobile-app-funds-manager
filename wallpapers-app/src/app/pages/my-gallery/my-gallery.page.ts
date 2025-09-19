@@ -103,10 +103,19 @@ export class MyGalleryPage implements OnInit {
     await loading.present();
 
     try {
-      // TODO: Implementar el plugin nativo para aplicar wallpaper
-      // await this.wallpaperService.setWallpaper(wallpaper.supabaseUrl, type);
+      let success = false;
       
-      await this.showToast('myGallery.wallpaperApplied', 'success');
+      if (type === 'home') {
+        success = await this.wallpaperService.setWallpaperHomeScreen(wallpaper.supabaseUrl);
+      } else if (type === 'lock') {
+        success = await this.wallpaperService.setWallpaperLockScreen(wallpaper.supabaseUrl);
+      }
+      
+      if (success) {
+        await this.showToast('myGallery.wallpaperApplied', 'success');
+      } else {
+        await this.showToast('myGallery.applyError', 'danger');
+      }
     } catch (error) {
       console.error('Error applying wallpaper:', error);
       await this.showToast('myGallery.applyError', 'danger');

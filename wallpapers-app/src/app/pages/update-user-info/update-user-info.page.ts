@@ -29,22 +29,23 @@ export class UpdateUserInfoPage implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    // Suscribirse al estado de autenticación para esperar a que esté listo
+    // Como la ruta ya está protegida por authGuard, el usuario está garantizado que está autenticado
+    // Suscribirse al estado de autenticación para cargar datos del usuario
     this.subscription.add(
       this.authProvider.currentUser$.subscribe(user => {
-        if (user !== null) {
+        if (user) {
           // Usuario autenticado, cargar datos
           this.loadUserDataFromCurrentUser(user);
-        } else {
-          // No hay usuario autenticado, verificar si Firebase ya inicializó
-          setTimeout(() => {
-            if (!this.authProvider.getCurrentUser()) {
-              this.redirectToLogin();
-            }
-          }, 1000); // Dar tiempo a Firebase para inicializar
         }
+        // No necesitamos manejar el caso null aquí porque authGuard ya lo maneja
       })
     );
+
+    // Cargar datos inmediatamente si ya hay un usuario
+    const currentUser = this.authProvider.getCurrentUser();
+    if (currentUser) {
+      this.loadUserDataFromCurrentUser(currentUser);
+    }
   }
 
   ngOnDestroy() {
@@ -94,12 +95,13 @@ export class UpdateUserInfoPage implements OnInit, OnDestroy {
       this.isLoading = true;
 
       try {
-        // Verificar autenticación de manera robusta
+        // Como la ruta está protegida por authGuard, sabemos que hay un usuario autenticado
         const currentUser = this.authProvider.getCurrentUser();
         
         if (!currentUser) {
-          this.isLoading = false;
-          await this.redirectToLogin();
+          // Esto no debería pasar, pero por seguridad
+          console.error('Error: No hay usuario autenticado en página protegida');
+          this.router.navigate(['/login']);
           return;
         }
 

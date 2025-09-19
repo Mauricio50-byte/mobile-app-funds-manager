@@ -73,8 +73,10 @@ export class TranslationService {
   }
 
   setLanguage(language: Language): void {
+    this.currentLanguage = language;
     this.currentLanguageSubject.next(language);
-    localStorage.setItem('app-language', language);
+    this.languageSubject.next(language);
+    localStorage.setItem('language', language);
   }
 
   getCurrentLanguage(): Language {
@@ -88,8 +90,9 @@ export class TranslationService {
     
     // Verificar si las traducciones están cargadas
     if (!this.translations[currentLang] || Object.keys(this.translations[currentLang]).length === 0) {
-      console.warn(`Translations not loaded for language: ${currentLang}`);
-      return key;
+      console.warn(`Translations not loaded for language: ${currentLang}, using fallback`);
+      // Retornar traducciones básicas como fallback
+      return this.getFallbackTranslation(key);
     }
     
     const translation = this.getNestedTranslation(this.translations[currentLang], key);
@@ -106,7 +109,8 @@ export class TranslationService {
       }
     }
     
-    return key; // Retorna la clave si no encuentra traducción
+    // Último fallback
+    return this.getFallbackTranslation(key);
   }
 
   private getNestedTranslation(obj: Translations, key: string): string | Translations {
@@ -131,6 +135,46 @@ export class TranslationService {
       const paramIndex = parseInt(index, 10);
       return params[paramIndex] !== undefined ? params[paramIndex] : match;
     });
+  }
+
+  private getFallbackTranslation(key: string): string {
+    // Traducciones básicas de fallback
+    const fallbackTranslations: { [key: string]: string } = {
+      'upload.title': 'Subir Nuevo Fondo',
+      'upload.titleLabel': 'Título',
+      'upload.titlePlaceholder': 'Nombre de tu fondo de pantalla',
+      'upload.descriptionLabel': 'Descripción',
+      'upload.descriptionPlaceholder': 'Describe tu fondo de pantalla (opcional)',
+      'upload.categoryLabel': 'Categoría',
+      'upload.categoryPlaceholder': 'Selecciona una categoría',
+      'upload.tagsLabel': 'Etiquetas',
+      'upload.tagsPlaceholder': 'naturaleza, paisaje, montaña',
+      'upload.tagsNote': 'Separa las etiquetas con comas',
+      'upload.makePublic': 'Hacer público',
+      'upload.makePublicDescription': 'Otros usuarios podrán ver y descargar tu fondo',
+      'upload.uploadButton': 'Subir Fondo',
+      'upload.uploading': 'Subiendo...',
+      'upload.selectImage': 'Toca para seleccionar una imagen',
+      'upload.titleRequired': 'El título es requerido',
+      'upload.titleMinLength': 'El título debe tener al menos 3 caracteres',
+      'upload.categoryRequired': 'La categoría es requerida',
+      'upload.discardChanges': '¿Descartar cambios?',
+      'upload.discardChangesMessage': 'Se perderán todos los cambios no guardados',
+      'common.cancel': 'Cancelar',
+      'common.accept': 'Aceptar',
+      'categories.nature': 'Naturaleza',
+      'categories.abstract': 'Abstracto',
+      'categories.minimal': 'Minimalista',
+      'categories.landscape': 'Paisaje',
+      'categories.city': 'Ciudad',
+      'categories.space': 'Espacio',
+      'categories.animals': 'Animales',
+      'categories.art': 'Arte',
+      'categories.technology': 'Tecnología',
+      'categories.other': 'Otro'
+    };
+
+    return fallbackTranslations[key] || key;
   }
 
   // Método helper para obtener traducciones reactivas
