@@ -1,0 +1,104 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="goBack()">
+        <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ translationService.translate('myGallery.title') }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="navigateToUpload()">
+        <ion-icon name="add-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">{{ translationService.translate('myGallery.title') }}</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <!-- Refresher -->
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>{{ translationService.translate('myGallery.loading') }}</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && wallpapers.length === 0" class="empty-state">
+    <ion-icon name="images-outline" size="large" color="medium"></ion-icon>
+    <h2>{{ translationService.translate('myGallery.emptyTitle') }}</h2>
+    <p>{{ translationService.translate('myGallery.emptyMessage') }}</p>
+    <ion-button fill="outline" (click)="navigateToUpload()">
+      <ion-icon name="add-outline" slot="start"></ion-icon>
+      {{ translationService.translate('myGallery.uploadFirst') }}
+    </ion-button>
+  </div>
+
+  <!-- Wallpapers Grid -->
+  <div *ngIf="!isLoading && wallpapers.length > 0" class="wallpapers-grid">
+    <ion-card *ngFor="let wallpaper of wallpapers" class="wallpaper-card">
+      <!-- Wallpaper Image -->
+      <div class="wallpaper-image-container">
+        <img 
+          [src]="wallpaper.thumbnailUrl || wallpaper.supabaseUrl" 
+          [alt]="wallpaper.title"
+          class="wallpaper-image"
+        />
+        <div class="wallpaper-overlay">
+          <ion-button fill="clear" size="small" (click)="applyWallpaper(wallpaper, 'home')">
+            <ion-icon name="home-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" size="small" (click)="applyWallpaper(wallpaper, 'lock')">
+            <ion-icon name="lock-closed-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" size="small" color="danger" (click)="deleteWallpaper(wallpaper)">
+            <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- Wallpaper Info -->
+      <ion-card-content>
+        <h3>{{ wallpaper.title }}</h3>
+        <p *ngIf="wallpaper.description">{{ wallpaper.description }}</p>
+        
+        <!-- Tags -->
+        <div *ngIf="wallpaper.tags && wallpaper.tags.length > 0" class="tags-container">
+          <ion-chip *ngFor="let tag of wallpaper.tags" color="primary" outline>
+            <ion-label>{{ tag }}</ion-label>
+          </ion-chip>
+        </div>
+
+        <!-- Category -->
+        <div *ngIf="wallpaper.category" class="category-container">
+          <ion-chip color="secondary" outline>
+            <ion-icon name="folder-outline" slot="start"></ion-icon>
+            <ion-label>{{ wallpaper.category }}</ion-label>
+          </ion-chip>
+        </div>
+
+        <!-- Date -->
+        <p class="date-text">
+          <ion-icon name="calendar-outline"></ion-icon>
+          {{ wallpaper.createdAt | date:'short' }}
+        </p>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- Floating Action Button -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button color="primary" (click)="navigateToUpload()">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

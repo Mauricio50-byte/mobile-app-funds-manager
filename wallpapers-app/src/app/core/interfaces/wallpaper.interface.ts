@@ -1,20 +1,23 @@
 export interface WallpaperData {
   id?: string;
-  userId: string;
+  uid: string; // Firebase UID del usuario propietario
   title: string;
   description?: string;
-  imageUrl: string;
-  imagePath: string;
+  supabaseUrl: string; // URL del archivo en Supabase Storage
+  thumbnailUrl?: string; // Miniatura optimizada
+  imagePath: string; // Path en Supabase Storage
   tags?: string[];
+  category?: string;
   isPublic: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface WallpaperFilter {
-  userId?: string;
+  uid?: string; // Firebase UID para filtrar por usuario
   isPublic?: boolean;
   tags?: string[];
+  category?: string;
   limit?: number;
   orderBy?: 'createdAt' | 'updatedAt' | 'title';
   orderDirection?: 'asc' | 'desc';
@@ -24,8 +27,15 @@ export interface CreateWallpaperData {
   title: string;
   description?: string;
   tags?: string[];
+  category?: string;
   isPublic: boolean;
   imageFile: File;
+}
+
+export interface UploadWallpaperResponse {
+  success: boolean;
+  wallpaper?: WallpaperData;
+  error?: string;
 }
 
 export interface UpdateWallpaperData {

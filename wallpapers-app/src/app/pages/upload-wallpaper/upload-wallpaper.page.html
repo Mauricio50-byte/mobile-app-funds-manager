@@ -1,0 +1,147 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="showDiscardAlert()">
+        <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ translationService.translate('upload.title') }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button 
+        fill="clear" 
+        [disabled]="!uploadForm.valid || !selectedFile || isUploading"
+        (click)="uploadWallpaper()">
+        <ion-icon name="checkmark" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <form [formGroup]="uploadForm" class="upload-form">
+    
+    <!-- Image Selection Section -->
+    <div class="image-section">
+      <div class="image-container" *ngIf="!imagePreview" (click)="selectImage()">
+        <ion-icon name="camera" class="camera-icon"></ion-icon>
+        <p class="select-text">{{ translationService.translate('upload.selectImage') }}</p>
+      </div>
+      
+      <div class="image-preview" *ngIf="imagePreview">
+        <img [src]="imagePreview" alt="Preview" />
+        <ion-button 
+          fill="clear" 
+          class="remove-button" 
+          (click)="removeImage()">
+          <ion-icon name="close-circle" slot="icon-only"></ion-icon>
+        </ion-button>
+        <ion-button 
+          fill="clear" 
+          class="change-button" 
+          (click)="selectImage()">
+          <ion-icon name="camera" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Form Fields -->
+    <div class="form-fields">
+      
+      <!-- Title Field -->
+      <ion-item>
+        <ion-label position="stacked">
+          {{ translationService.translate('upload.titleLabel') }} *
+        </ion-label>
+        <ion-input 
+          formControlName="title"
+          [placeholder]="translationService.translate('upload.titlePlaceholder')"
+          maxlength="50">
+        </ion-input>
+      </ion-item>
+      <div class="error-message" *ngIf="title?.invalid && title?.touched">
+        <span *ngIf="title?.errors?.['required']">
+          {{ translationService.translate('upload.titleRequired') }}
+        </span>
+        <span *ngIf="title?.errors?.['minlength']">
+          {{ translationService.translate('upload.titleMinLength') }}
+        </span>
+      </div>
+
+      <!-- Description Field -->
+      <ion-item>
+        <ion-label position="stacked">
+          {{ translationService.translate('upload.descriptionLabel') }}
+        </ion-label>
+        <ion-textarea 
+          formControlName="description"
+          [placeholder]="translationService.translate('upload.descriptionPlaceholder')"
+          rows="3"
+          maxlength="200">
+        </ion-textarea>
+      </ion-item>
+
+      <!-- Category Field -->
+      <ion-item>
+        <ion-label position="stacked">
+          {{ translationService.translate('upload.categoryLabel') }} *
+        </ion-label>
+        <ion-select 
+          formControlName="category"
+          [placeholder]="translationService.translate('upload.categoryPlaceholder')"
+          interface="popover">
+          <ion-select-option 
+            *ngFor="let category of categories" 
+            [value]="category">
+            {{ translationService.translate('categories.' + category) }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+      <div class="error-message" *ngIf="category?.invalid && category?.touched">
+        <span *ngIf="category?.errors?.['required']">
+          {{ translationService.translate('upload.categoryRequired') }}
+        </span>
+      </div>
+
+      <!-- Tags Field -->
+      <ion-item>
+        <ion-label position="stacked">
+          {{ translationService.translate('upload.tagsLabel') }}
+        </ion-label>
+        <ion-input 
+          formControlName="tags"
+          [placeholder]="translationService.translate('upload.tagsPlaceholder')">
+        </ion-input>
+      </ion-item>
+      <ion-note class="tags-note">
+        {{ translationService.translate('upload.tagsNote') }}
+      </ion-note>
+
+      <!-- Public Toggle -->
+      <ion-item>
+        <ion-label>
+          <h3>{{ translationService.translate('upload.makePublic') }}</h3>
+          <p>{{ translationService.translate('upload.makePublicDescription') }}</p>
+        </ion-label>
+        <ion-toggle 
+          formControlName="isPublic"
+          slot="end">
+        </ion-toggle>
+      </ion-item>
+
+    </div>
+
+    <!-- Upload Button -->
+    <div class="upload-button-container">
+      <ion-button 
+        expand="block" 
+        size="large"
+        [disabled]="!uploadForm.valid || !selectedFile || isUploading"
+        (click)="uploadWallpaper()">
+        <ion-icon name="cloud-upload" slot="start" *ngIf="!isUploading"></ion-icon>
+        <ion-spinner name="crescent" slot="start" *ngIf="isUploading"></ion-spinner>
+        {{ isUploading ? translationService.translate('upload.uploading') : translationService.translate('upload.uploadButton') }}
+      </ion-button>
+    </div>
+
+  </form>
+</ion-content>

@@ -1,0 +1,268 @@
+.upload-form {
+  padding: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+// Image Selection Section
+.image-section {
+  margin-bottom: 24px;
+  
+  .image-container {
+    border: 2px dashed var(--ion-color-medium);
+    border-radius: 12px;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: var(--ion-color-light);
+    
+    &:hover {
+      border-color: var(--ion-color-primary);
+      background: var(--ion-color-primary-tint);
+    }
+    
+    .camera-icon {
+      font-size: 48px;
+      color: var(--ion-color-medium);
+      margin-bottom: 8px;
+    }
+    
+    .select-text {
+      color: var(--ion-color-medium);
+      font-size: 16px;
+      margin: 0;
+      text-align: center;
+    }
+  }
+  
+  .image-preview {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    
+    img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      display: block;
+    }
+    
+    .remove-button {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      --color: white;
+      --background: rgba(255, 0, 0, 0.7);
+      --border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      
+      ion-icon {
+        font-size: 24px;
+      }
+    }
+    
+    .change-button {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      --color: white;
+      --background: rgba(0, 0, 0, 0.7);
+      --border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      
+      ion-icon {
+        font-size: 20px;
+      }
+    }
+  }
+}
+
+// Form Fields
+.form-fields {
+  margin-bottom: 24px;
+  
+  ion-item {
+    --border-radius: 8px;
+    --background: var(--ion-color-light);
+    margin-bottom: 16px;
+    border-radius: 8px;
+    
+    ion-label {
+      font-weight: 500;
+      
+      h3 {
+        margin: 0 0 4px 0;
+        font-size: 16px;
+        font-weight: 600;
+      }
+      
+      p {
+        margin: 0;
+        font-size: 14px;
+        color: var(--ion-color-medium);
+      }
+    }
+    
+    ion-input, ion-textarea, ion-select {
+      --padding-start: 12px;
+      --padding-end: 12px;
+    }
+    
+    ion-toggle {
+      --handle-background: white;
+      --handle-background-checked: white;
+      --background: var(--ion-color-medium);
+      --background-checked: var(--ion-color-primary);
+    }
+  }
+  
+  .error-message {
+    color: var(--ion-color-danger);
+    font-size: 12px;
+    margin: -12px 0 16px 12px;
+    
+    span {
+      display: block;
+    }
+  }
+  
+  .tags-note {
+    font-size: 12px;
+    color: var(--ion-color-medium);
+    margin: -12px 0 16px 12px;
+    display: block;
+  }
+}
+
+// Upload Button
+.upload-button-container {
+  margin-top: 32px;
+  
+  ion-button {
+    --border-radius: 12px;
+    height: 56px;
+    font-weight: 600;
+    font-size: 16px;
+    
+    &[disabled] {
+      --opacity: 0.5;
+    }
+    
+    ion-icon, ion-spinner {
+      margin-right: 8px;
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .upload-form {
+    padding: 12px;
+  }
+  
+  .image-section {
+    .image-container {
+      height: 160px;
+      
+      .camera-icon {
+        font-size: 36px;
+      }
+      
+      .select-text {
+        font-size: 14px;
+      }
+    }
+    
+    .image-preview {
+      img {
+        height: 160px;
+      }
+    }
+  }
+  
+  .upload-button-container {
+    ion-button {
+      height: 48px;
+      font-size: 14px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .upload-form {
+    padding: 8px;
+  }
+  
+  .image-section {
+    margin-bottom: 16px;
+    
+    .image-container {
+      height: 140px;
+      
+      .camera-icon {
+        font-size: 32px;
+      }
+    }
+    
+    .image-preview {
+      img {
+        height: 140px;
+      }
+      
+      .remove-button,
+      .change-button {
+        width: 36px;
+        height: 36px;
+        
+        ion-icon {
+          font-size: 18px;
+        }
+      }
+    }
+  }
+  
+  .form-fields {
+    margin-bottom: 16px;
+    
+    ion-item {
+      margin-bottom: 12px;
+      
+      ion-label {
+        h3 {
+          font-size: 14px;
+        }
+        
+        p {
+          font-size: 12px;
+        }
+      }
+    }
+  }
+}
+
+// Dark Mode Support
+@media (prefers-color-scheme: dark) {
+  .image-section {
+    .image-container {
+      border-color: var(--ion-color-medium-shade);
+      background: var(--ion-color-dark);
+      
+      &:hover {
+        background: var(--ion-color-primary-shade);
+      }
+    }
+  }
+  
+  .form-fields {
+    ion-item {
+      --background: var(--ion-color-dark);
+    }
+  }
+}

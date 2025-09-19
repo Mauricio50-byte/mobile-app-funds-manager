@@ -1,0 +1,189 @@
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { AlertController, LoadingController, ToastController } from '@ionic/angular';
+import { WallpaperData, WallpaperFilter } from '../../core/interfaces/wallpaper.interface';
+import { WallpaperService } from '../../core/services/wallpaper.service';
+import { Auth } from '../../core/services/auth';
+import { TranslationService } from '../../core/services/translation.service';
+
+@Component({
+  selector: 'app-my-gallery',
+  templateUrl: './my-gallery.page.html',
+  styleUrls: ['./my-gallery.page.scss'],
+  standalone: false
+})
+export class MyGalleryPage implements OnInit {
+  wallpapers: WallpaperData[] = [];
+  isLoading = false;
+  currentUser: any = null;
+
+  constructor(
+    private router: Router,
+    private wallpaperService: WallpaperService,
+    private auth: Auth,
+    private alertController: AlertController,
+    private loadingController: LoadingController,
+    private toastController: ToastController,
+    public translationService: TranslationService
+  ) { }
+
+  async ngOnInit() {
+    await this.loadCurrentUser();
+    await this.loadMyWallpapers();
+  }
+
+  async ionViewWillEnter() {
+    // Recargar wallpapers cada vez que se entra a la página
+    await this.loadMyWallpapers();
+  }
+
+  private async loadCurrentUser() {
+    try {
+      this.currentUser = await this.auth.getCurrentUser();
+    } catch (error) {
+      console.error('Error loading current user:', error);
+      this.router.navigate(['/login']);
+    }
+  }
+
+  async loadMyWallpapers() {
+    if (!this.currentUser) return;
+
+    this.isLoading = true;
+    try {
+      const filter: WallpaperFilter = {
+        uid: this.currentUser.uid,
+        orderBy: 'createdAt',
+        orderDirection: 'desc'
+      };
+
+      this.wallpaperService.getWallpapers(filter).subscribe({
+        next: (wallpapers) => {
+          this.wallpapers = wallpapers;
+          this.isLoading = false;
+        },
+        error: async (error) => {
+          console.error('Error loading wallpapers:', error);
+          await this.showToast('myGallery.loadError', 'danger');
+          this.isLoading = false;
+        }
+      });
+    } catch (error) {
+      console.error('Error loading wallpapers:', error);
+      await this.showToast('myGallery.loadError', 'danger');
+      this.isLoading = false;
+    }
+  }
+
+  async applyWallpaper(wallpaper: WallpaperData, type: 'home' | 'lock') {
+    const alert = await this.alertController.create({
+      header: this.translationService.translate('myGallery.applyWallpaper'),
+      message: this.translationService.translate('myGallery.applyWallpaper'),
+      buttons: [
+        {
+          text: this.translationService.translate('common.cancel'),
+          role: 'cancel'
+        },
+        {
+          text: this.translationService.translate('common.accept'),
+          handler: async () => {
+            await this.setWallpaper(wallpaper, type);
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  private async setWallpaper(wallpaper: WallpaperData, type: 'home' | 'lock') {
+    const loading = await this.loadingController.create({
+      message: this.translationService.translate('myGallery.loading')
+    });
+    await loading.present();
+
+    try {
+      // TODO: Implementar el plugin nativo para aplicar wallpaper
+      // await this.wallpaperService.setWallpaper(wallpaper.supabaseUrl, type);
+      
+      await this.showToast('myGallery.wallpaperApplied', 'success');
+    } catch (error) {
+      console.error('Error applying wallpaper:', error);
+      await this.showToast('myGallery.applyError', 'danger');
+    } finally {
+      await loading.dismiss();
+    }
+  }
+
+  async deleteWallpaper(wallpaper: WallpaperData) {
+    const alert = await this.alertController.create({
+      header: this.translationService.translate('myGallery.confirmDelete'),
+      message: this.translationService.translate('myGallery.confirmDeleteMessage'),
+      buttons: [
+        {
+          text: this.translationService.translate('common.cancel'),
+          role: 'cancel'
+        },
+        {
+          text: this.translationService.translate('common.delete'),
+          role: 'destructive',
+          handler: () => {
+            this.wallpaperService.deleteWallpaper(wallpaper.id!).subscribe({
+              next: async () => {
+                await this.showToast('myGallery.wallpaperDeleted', 'success');
+                await this.loadMyWallpapers();
+              },
+              error: async (error) => {
+                console.error('Error deleting wallpaper:', error);
+                await this.showToast('myGallery.deleteError', 'danger');
+              }
+            });
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  private async performDelete(wallpaper: WallpaperData) {
+    const loading = await this.loadingController.create({
+      message: this.translationService.translate('myGallery.loading')
+    });
+    await loading.present();
+
+    try {
+      await this.wallpaperService.deleteWallpaper(wallpaper.id!);
+      await this.loadMyWallpapers(); // Recargar la lista
+      await this.showToast('myGallery.wallpaperDeleted', 'success');
+    } catch (error) {
+      console.error('Error deleting wallpaper:', error);
+      await this.showToast('myGallery.deleteError', 'danger');
+    } finally {
+      await loading.dismiss();
+    }
+  }
+
+  navigateToUpload() {
+    this.router.navigate(['/upload-wallpaper']);
+  }
+
+  goBack() {
+    this.router.navigate(['/home']);
+  }
+
+  private async showToast(messageKey: string, color: string) {
+    const toast = await this.toastController.create({
+      message: this.translationService.translate(messageKey),
+      duration: 3000,
+      color: color,
+      position: 'bottom'
+    });
+    await toast.present();
+  }
+
+  async doRefresh(event: any) {
+    await this.loadMyWallpapers();
+    event.target.complete();
+  }
+}

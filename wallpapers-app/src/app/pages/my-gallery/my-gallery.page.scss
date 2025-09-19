@@ -1,0 +1,184 @@
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  text-align: center;
+
+  ion-spinner {
+    margin-bottom: 16px;
+  }
+
+  p {
+    color: var(--ion-color-medium);
+    margin: 0;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  min-height: 300px;
+
+  ion-icon {
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    color: var(--ion-color-dark);
+    margin-bottom: 8px;
+  }
+
+  p {
+    color: var(--ion-color-medium);
+    margin-bottom: 24px;
+    max-width: 300px;
+  }
+}
+
+.wallpapers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  padding-bottom: 80px; // Space for FAB
+}
+
+.wallpaper-card {
+  margin: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.wallpaper-image-container {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+
+  .wallpaper-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .wallpaper-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+
+    ion-button {
+      --background: rgba(255, 255, 255, 0.2);
+      --color: white;
+      --border-radius: 50%;
+      width: 40px;
+      height: 40px;
+
+      &:hover {
+        --background: rgba(255, 255, 255, 0.3);
+      }
+    }
+  }
+
+  &:hover {
+    .wallpaper-image {
+      transform: scale(1.05);
+    }
+
+    .wallpaper-overlay {
+      opacity: 1;
+    }
+  }
+}
+
+ion-card-content {
+  padding: 16px;
+
+  h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--ion-color-dark);
+  }
+
+  p {
+    margin: 0 0 12px 0;
+    color: var(--ion-color-medium);
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+}
+
+.tags-container {
+  margin-bottom: 12px;
+
+  ion-chip {
+    margin: 2px 4px 2px 0;
+    font-size: 0.8rem;
+  }
+}
+
+.category-container {
+  margin-bottom: 12px;
+
+  ion-chip {
+    font-size: 0.8rem;
+  }
+}
+
+.date-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem !important;
+  color: var(--ion-color-medium) !important;
+  margin: 8px 0 0 0 !important;
+
+  ion-icon {
+    font-size: 0.9rem;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .wallpapers-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 12px;
+  }
+
+  .wallpaper-image-container {
+    height: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .wallpapers-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .wallpaper-image-container {
+    height: 200px;
+  }
+}

@@ -19,10 +19,8 @@ import { WallpaperData, WallpaperFilter, CreateWallpaperData, UpdateWallpaperDat
 import { Uploader } from './uploader';
 import { Auth } from './auth';
 
-/**
- * Servicio para manejar la lógica de negocio de wallpapers
- * Responsabilidad: CRUD de wallpapers en Firestore, autenticación, subida de archivos
- * */
+// Aquí creé el servicio para manejar toda la lógica de negocio de wallpapers
+// Implementé CRUD completo en Firestore, autenticación y subida de archivos
 
 @Injectable({
   providedIn: 'root'
@@ -36,9 +34,7 @@ export class WallpaperService {
     private authService: Auth
   ) {}
 
-  /**
-   * Crear un nuevo wallpaper
-   */
+  // Aquí implementé el método para crear un nuevo wallpaper con subida a Supabase
   createWallpaper(wallpaperData: CreateWallpaperData): Observable<string> {
     return this.authService.user$.pipe(
       switchMap(user => {
@@ -54,12 +50,13 @@ export class WallpaperService {
             }
 
             const newWallpaper: Omit<WallpaperData, 'id'> = {
-              userId: user.uid,
+              uid: user.uid,
               title: wallpaperData.title,
               description: wallpaperData.description || '',
-              imageUrl: uploadResult.url,
+              supabaseUrl: uploadResult.url,
               imagePath: uploadResult.path,
               tags: wallpaperData.tags || [],
+              category: wallpaperData.category || '',
               isPublic: wallpaperData.isPublic,
               createdAt: new Date(),
               updatedAt: new Date()
@@ -83,16 +80,14 @@ export class WallpaperService {
     );
   }
 
-  /**
-   * Obtener wallpapers con filtros
-   */
+  // Aquí desarrollé el método para obtener wallpapers con sistema de filtros avanzado
   getWallpapers(filter: WallpaperFilter = {}): Observable<WallpaperData[]> {
     const wallpapersCollection = collection(this.firestore, this.collectionName);
     let q = query(wallpapersCollection);
 
     // Aplicar filtros
-    if (filter.userId) {
-      q = query(q, where('userId', '==', filter.userId));
+    if (filter.uid) {
+      q = query(q, where('uid', '==', filter.uid));
     }
 
     if (filter.isPublic !== undefined) {
@@ -129,23 +124,19 @@ export class WallpaperService {
     );
   }
 
-  /**
-   * Obtener wallpapers del usuario actual
-   */
+  // Aquí creé el método para obtener solo los wallpapers del usuario autenticado
   getUserWallpapers(): Observable<WallpaperData[]> {
     return this.authService.user$.pipe(
       switchMap(user => {
         if (!user) {
           return of([]);
         }
-        return this.getWallpapers({ userId: user.uid });
+        return this.getWallpapers({ uid: user.uid });
       })
     );
   }
 
-  /**
-   * Obtener wallpapers públicos
-   */
+  // Aquí implementé el método para obtener wallpapers públicos disponibles para todos
   getPublicWallpapers(limitCount: number = 20): Observable<WallpaperData[]> {
     return this.getWallpapers({ 
       isPublic: true, 
@@ -194,7 +185,7 @@ export class WallpaperService {
             if (!wallpaper) {
               throw new Error('Wallpaper no encontrado');
             }
-            if (wallpaper.userId !== user.uid) {
+            if (wallpaper.uid !== user.uid) {
               throw new Error('No tienes permisos para actualizar este wallpaper');
             }
 
@@ -231,7 +222,7 @@ export class WallpaperService {
             if (!wallpaper) {
               throw new Error('Wallpaper no encontrado');
             }
-            if (wallpaper.userId !== user.uid) {
+            if (wallpaper.uid !== user.uid) {
               throw new Error('No tienes permisos para eliminar este wallpaper');
             }
 
@@ -253,9 +244,7 @@ export class WallpaperService {
     );
   }
 
-  /**
-   * Buscar wallpapers por título o descripción
-   */
+  // Aquí desarrollé el método de búsqueda por título o descripción
   searchWallpapers(searchTerm: string, isPublicOnly: boolean = true): Observable<WallpaperData[]> {
     // Esta es una implementación básica que filtra en el cliente
     const filter: WallpaperFilter = isPublicOnly ? { isPublic: true } : {};

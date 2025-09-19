@@ -23,6 +23,14 @@ const routes: Routes = [
     redirectTo: 'login',
     pathMatch: 'full'
   },
+  {
+    path: 'my-gallery',
+    loadChildren: () => import('./pages/my-gallery/my-gallery.module').then( m => m.MyGalleryPageModule)
+  },
+  {
+    path: 'upload-wallpaper',
+    loadChildren: () => import('./pages/upload-wallpaper/upload-wallpaper.module').then( m => m.UploadWallpaperPageModule)
+  },
 ];
 
 @NgModule({

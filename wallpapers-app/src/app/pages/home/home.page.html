@@ -44,7 +44,7 @@
       </ion-card>
 
       <!-- Wallpapers Card -->
-      <ion-card class="action-card">
+      <ion-card class="action-card" button (click)="navigateToMyGallery()">
         <ion-card-content>
           <div class="card-content">
             <ion-icon name="images-outline" size="large" color="secondary"></ion-icon>
@@ -58,7 +58,7 @@
       </ion-card>
 
       <!-- Upload Card -->
-      <ion-card class="action-card">
+      <ion-card class="action-card" button (click)="navigateToUploadWallpaper()">
         <ion-card-content>
           <div class="card-content">
             <ion-icon name="cloud-upload-outline" size="large" color="tertiary"></ion-icon>

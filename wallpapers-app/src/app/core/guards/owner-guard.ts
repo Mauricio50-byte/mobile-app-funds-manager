@@ -37,7 +37,7 @@ export const ownerGuard: CanActivateFn = async (route: ActivatedRouteSnapshot, s
       return false;
     }
 
-    if (wallpaper.userId !== user.uid) {
+    if (wallpaper.uid !== user.uid) {
       console.log('Usuario no es propietario del wallpaper:', wallpaperId);
       router.navigate(['/home']);
       return false;

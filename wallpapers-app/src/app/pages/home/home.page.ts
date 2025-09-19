@@ -24,6 +24,14 @@ export class HomePage implements OnInit {
     this.router.navigate(['/update-user-info']);
   }
 
+  navigateToMyGallery() {
+    this.router.navigate(['/my-gallery']);
+  }
+
+  navigateToUploadWallpaper() {
+    this.router.navigate(['/upload-wallpaper']);
+  }
+
   async logout() {
     try {
       await this.auth.logout();
