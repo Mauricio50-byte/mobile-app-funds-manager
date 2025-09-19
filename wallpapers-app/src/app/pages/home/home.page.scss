@@ -1,3 +1,19 @@
+// Header styles
+.logout-button {
+  --color: var(--ion-color-danger);
+  --border-radius: 8px;
+  margin-left: 8px;
+  
+  ion-icon {
+    font-size: 20px;
+  }
+  
+  &:hover {
+    --background: var(--ion-color-danger-tint);
+    --color: var(--ion-color-danger-contrast);
+  }
+}
+
 .home-container {
   display: flex;
   flex-direction: column;

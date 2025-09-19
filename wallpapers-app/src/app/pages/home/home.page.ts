@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslationService } from '../../core/services/translation.service';
+import { Auth } from '../../core/services/auth';
 
 @Component({
   selector: 'app-home',
@@ -12,7 +13,8 @@ export class HomePage implements OnInit {
 
   constructor(
     private router: Router,
-    public translationService: TranslationService
+    public translationService: TranslationService,
+    private auth: Auth
   ) { }
 
   ngOnInit() {
@@ -20,6 +22,15 @@ export class HomePage implements OnInit {
 
   navigateToUpdateUserInfo() {
     this.router.navigate(['/update-user-info']);
+  }
+
+  async logout() {
+    try {
+      await this.auth.logout();
+      this.router.navigate(['/login']);
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   }
 
 }

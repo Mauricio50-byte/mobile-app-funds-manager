@@ -3,6 +3,9 @@
     <ion-title>{{ translationService.translate('home.title') }}</ion-title>
     <ion-buttons slot="end">
       <app-language-toggle></app-language-toggle>
+      <ion-button fill="clear" (click)="logout()" class="logout-button">
+        <ion-icon name="log-out-outline" slot="icon-only"></ion-icon>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
