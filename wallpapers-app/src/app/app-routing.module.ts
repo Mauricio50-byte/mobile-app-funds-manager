@@ -19,11 +19,6 @@ const routes: Routes = [
     loadChildren: () => import('./pages/update-user-info/update-user-info.module').then( m => m.UpdateUserInfoPageModule)
   },
   {
-    path: '',
-    redirectTo: 'login',
-    pathMatch: 'full'
-  },
-  {
     path: 'my-gallery',
     loadChildren: () => import('./pages/my-gallery/my-gallery.module').then( m => m.MyGalleryPageModule)
   },
@@ -31,6 +26,12 @@ const routes: Routes = [
     path: 'upload-wallpaper',
     loadChildren: () => import('./pages/upload-wallpaper/upload-wallpaper.module').then( m => m.UploadWallpaperPageModule)
   },
+  {
+    path: '',
+    redirectTo: 'login',
+    pathMatch: 'full'
+  },
+  
 ];
 
 @NgModule({
