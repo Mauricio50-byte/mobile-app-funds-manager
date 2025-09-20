@@ -70,13 +70,13 @@ export class Uploader {
         return;
       }
 
-      const bucketExists = buckets?.some(bucket => bucket.name === 'wallpapers');
+      const bucketExists = buckets?.some(bucket => bucket.name === 'wallpapers-app');
       
       if (!bucketExists) {
-        console.log('Bucket "wallpapers" no existe, intentando crear...');
+        console.log('Bucket "wallpapers-app" no existe, intentando crear...');
         
         // Intentar crear el bucket
-        const { error: createError } = await supabase.storage.createBucket('wallpapers', {
+        const { error: createError } = await supabase.storage.createBucket('wallpapers-app', {
           public: true,
           allowedMimeTypes: ['image/*'],
           fileSizeLimit: 50 * 1024 * 1024 // 50MB
@@ -112,12 +112,12 @@ export class Uploader {
       const fileName = `${timestamp}_${randomString}.${fileExtension}`;
       
       // Creo la ruta del archivo incluyendo el UID del usuario si está disponible
-      const filePath = userUid ? `wallpapers/${userUid}/${fileName}` : `wallpapers/public/${fileName}`;
+      const filePath = userUid ? `wallpapers-app/${userUid}/${fileName}` : `wallpapers-app/public/${fileName}`;
 
       // Subo el archivo a Supabase Storage
       const supabase = this.getSupabaseClient();
       const { data, error } = await supabase.storage
-        .from('wallpapers')
+        .from('wallpapers-app')
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
@@ -133,7 +133,7 @@ export class Uploader {
 
       // Genero URL firmada para acceder a la imagen
       const { data: urlData } = await supabase.storage
-        .from('wallpapers')
+        .from('wallpapers-app')
         .createSignedUrl(filePath, 60 * 60 * 24 * 365); // URL válida por 1 año
 
       if (!urlData?.signedUrl) {
@@ -168,7 +168,7 @@ export class Uploader {
 
       const supabase = this.getSupabaseClient();
       const { error } = await supabase.storage
-        .from('wallpapers')
+        .from('wallpapers-app')
         .remove([imagePath]);
 
       if (error) {
@@ -192,7 +192,7 @@ export class Uploader {
 
       const supabase = this.getSupabaseClient();
       const { data, error } = await supabase.storage
-        .from('wallpapers')
+        .from('wallpapers-app')
         .createSignedUrl(imagePath, expiresIn);
 
       if (error) {
@@ -212,7 +212,7 @@ export class Uploader {
     try {
       const supabase = this.getSupabaseClient();
       const { data, error } = await supabase.storage
-        .from('wallpapers')
+        .from('wallpapers-app')
         .list(imagePath.split('/').slice(0, -1).join('/'), {
           search: imagePath.split('/').pop()
         });
