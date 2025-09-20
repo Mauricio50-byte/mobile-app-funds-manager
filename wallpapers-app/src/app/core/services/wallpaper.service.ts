@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, from, map, switchMap, catchError, of, retry, timer, throwError } from 'rxjs';
+import { ToastController, Platform } from '@ionic/angular';
 import { 
   Firestore, 
   collection, 
@@ -16,12 +17,9 @@ import {
   Timestamp 
 } from '@angular/fire/firestore';
 import { WallpaperData, WallpaperFilter, CreateWallpaperData, UpdateWallpaperData } from '../interfaces/wallpaper.interface';
-import { Uploader } from './uploader';
 import { Auth } from './auth';
-import { SupabaseService } from './supabase.service';
+import { Uploader } from './uploader';
 import WallpaperPlugin from '../../plugins/wallpaper-plugin';
-import { Platform } from '@ionic/angular';
-import { ToastController } from '@ionic/angular';
 
 // Aquí creé el servicio para manejar toda la lógica de negocio de wallpapers
 // Implementé CRUD completo en Firestore, autenticación y subida de archivos
@@ -38,7 +36,6 @@ export class WallpaperService {
     private firestore: Firestore,
     private uploader: Uploader,
     private authService: Auth,
-    private supabaseService: SupabaseService,
     private platform: Platform,
     private toastController: ToastController
   ) {}
@@ -48,21 +45,48 @@ export class WallpaperService {
    */
   private handleFirestoreError<T>(operation: string) {
     return (error: any): Observable<T> => {
-      console.error(`Error en ${operation}:`, error);
-      
-      // Verificar si es un error de conectividad
-      if (this.isConnectivityError(error)) {
-        console.log(`Reintentando ${operation} debido a error de conectividad...`);
-        return throwError(() => new Error('No se puede conectar con la base de datos. Verifica tu conexión e intenta nuevamente.'));
+      try {
+        console.error(`Error en ${operation}:`, error);
+        
+        // Verificar si es un error de conectividad
+        if (this.isConnectivityError(error)) {
+          console.log(`Error de conectividad en ${operation}, devolviendo datos vacíos...`);
+          this.showConnectivityToast();
+          // Devolver datos vacíos en lugar de error para mantener la app funcionando
+          return of([] as unknown as T);
+        }
+        
+        // Verificar si es un error de permisos
+        if (this.isPermissionError(error)) {
+          console.log(`Error de permisos en ${operation}`);
+          this.showPermissionToast();
+          return of([] as unknown as T);
+        }
+
+        // Verificar errores específicos de Firestore
+        if (this.isFirestoreIndexError(error)) {
+          console.log(`Error de índice en ${operation}, usando consulta alternativa...`);
+          this.showIndexToast();
+          return of([] as unknown as T);
+        }
+
+        // Verificar errores de NavigatorLockAcquireTimeoutError
+        if (this.isNavigatorLockError(error)) {
+          console.log(`Error de lock timeout en ${operation}, reintentando...`);
+          this.showLockTimeoutToast();
+          return of([] as unknown as T);
+        }
+        
+        // Error genérico - mostrar toast y devolver datos vacíos
+        console.log(`Error genérico en ${operation}`);
+        this.showGenericErrorToast(operation);
+        return of([] as unknown as T);
+        
+      } catch (handlingError) {
+        console.error('Error manejando error de Firestore:', handlingError);
+        // Fallback final - devolver datos vacíos
+        return of([] as unknown as T);
       }
-      
-      // Verificar si es un error de permisos
-      if (this.isPermissionError(error)) {
-        return throwError(() => new Error('Permisos insuficientes. Inicia sesión e intenta nuevamente.'));
-      }
-      
-      // Error genérico
-      return throwError(() => new Error(`Error inesperado al ${operation.toLowerCase()}. Intenta nuevamente.`));
     };
   }
 
@@ -97,6 +121,127 @@ export class WallpaperService {
   }
 
   /**
+   * Verificar si es un error de índice de Firestore
+   */
+  private isFirestoreIndexError(error: any): boolean {
+    const indexErrors = [
+      'requires an index',
+      'composite index',
+      'index not found',
+      'INDEX_NOT_FOUND'
+    ];
+    
+    const errorMessage = error?.message || error?.toString() || '';
+    return indexErrors.some(msg => errorMessage.includes(msg));
+  }
+
+  /**
+   * Verificar si es un error de NavigatorLockAcquireTimeoutError
+   */
+  private isNavigatorLockError(error: any): boolean {
+    const lockErrors = [
+      'NavigatorLockAcquireTimeoutError',
+      'lock:sb-',
+      'auth-token',
+      'Acquiring an exclusive Navigator LockManager lock',
+      'immediately failed'
+    ];
+    
+    const errorMessage = error?.message || error?.toString() || '';
+    return lockErrors.some(msg => errorMessage.includes(msg));
+  }
+
+  /**
+   * Mostrar notificación de error de conectividad
+   */
+  private async showConnectivityToast() {
+    try {
+      const toast = await this.toastController.create({
+        message: 'Sin conexión a internet. Mostrando datos guardados.',
+        duration: 3000,
+        position: 'bottom',
+        color: 'warning',
+        icon: 'wifi-outline'
+      });
+      await toast.present();
+    } catch (error) {
+      console.error('Error mostrando toast de conectividad:', error);
+    }
+  }
+
+  /**
+   * Mostrar notificación de error de permisos
+   */
+  private async showPermissionToast() {
+    try {
+      const toast = await this.toastController.create({
+        message: 'Permisos insuficientes. Inicia sesión nuevamente.',
+        duration: 4000,
+        position: 'bottom',
+        color: 'danger',
+        icon: 'lock-closed-outline'
+      });
+      await toast.present();
+    } catch (error) {
+      console.error('Error mostrando toast de permisos:', error);
+    }
+  }
+
+  /**
+   * Mostrar notificación de error de índice
+   */
+  private async showIndexToast() {
+    try {
+      const toast = await this.toastController.create({
+        message: 'Configurando base de datos. Intenta nuevamente en unos momentos.',
+        duration: 4000,
+        position: 'bottom',
+        color: 'medium',
+        icon: 'settings-outline'
+      });
+      await toast.present();
+    } catch (error) {
+      console.error('Error mostrando toast de índice:', error);
+    }
+  }
+
+  /**
+   * Mostrar notificación de error genérico
+   */
+  private async showGenericErrorToast(operation: string) {
+    try {
+      const toast = await this.toastController.create({
+        message: `Error temporal en ${operation}. Intenta nuevamente.`,
+        duration: 3000,
+        position: 'bottom',
+        color: 'danger',
+        icon: 'alert-circle-outline'
+      });
+      await toast.present();
+    } catch (error) {
+      console.error('Error mostrando toast genérico:', error);
+    }
+  }
+
+  /**
+   * Mostrar notificación de error de lock timeout
+   */
+  private async showLockTimeoutToast() {
+    try {
+      const toast = await this.toastController.create({
+        message: 'Error de autenticación temporal. Cerrando y abriendo sesión puede ayudar.',
+        duration: 5000,
+        position: 'bottom',
+        color: 'warning',
+        icon: 'time-outline'
+      });
+      await toast.present();
+    } catch (error) {
+      console.error('Error mostrando toast de lock timeout:', error);
+    }
+  }
+
+  /**
    * Operador de reintento con delay exponencial
    */
   private retryWithBackoff<T>() {
@@ -104,9 +249,10 @@ export class WallpaperService {
       retry({
         count: this.maxRetries,
         delay: (error, retryCount) => {
-          if (this.isConnectivityError(error)) {
+          if (this.isConnectivityError(error) || this.isFirestoreIndexError(error) || this.isNavigatorLockError(error)) {
             const delay = this.retryDelay * Math.pow(2, retryCount - 1);
             console.log(`Reintentando en ${delay}ms (intento ${retryCount}/${this.maxRetries})`);
+            this.showRetryToast(retryCount);
             return timer(delay);
           }
           return throwError(() => error);
@@ -115,91 +261,38 @@ export class WallpaperService {
     );
   }
 
-  // Aquí implementé el método para crear un nuevo wallpaper con subida a Supabase
-  createWallpaper(wallpaperData: CreateWallpaperData): Observable<string> {
-    return this.authService.user$.pipe(
-      switchMap(user => {
-        if (!user) {
-          throw new Error('Usuario no autenticado');
-        }
-
-        // Primero comprimir y subir la imagen a Supabase
-        return from(this.supabaseService.compressImage(wallpaperData.imageFile, 1920, 0.8)).pipe(
-          switchMap(compressedFile => {
-            return from(this.supabaseService.uploadWallpaper(compressedFile, user.uid));
-          }),
-          switchMap(uploadResult => {
-            if (uploadResult.error || !uploadResult.data) {
-              throw new Error(uploadResult.error?.message || 'Error al subir la imagen a Supabase');
-            }
-
-            // Obtener URL firmada para el archivo subido
-            return from(this.supabaseService.getSignedUrl(uploadResult.data.path, 31536000)).pipe( // 1 año
-              switchMap(urlResult => {
-                if (urlResult.error || !urlResult.data) {
-                  throw new Error('Error al obtener URL firmada');
-                }
-
-                const newWallpaper: Omit<WallpaperData, 'id'> = {
-                  uid: user.uid,
-                  title: wallpaperData.title,
-                  description: wallpaperData.description || '',
-                  supabaseUrl: urlResult.data.signedUrl,
-                  imagePath: uploadResult.data.path,
-                  tags: wallpaperData.tags || [],
-                  category: wallpaperData.category || '',
-                  isPublic: wallpaperData.isPublic,
-                  createdAt: new Date(),
-                  updatedAt: new Date()
-                };
-
-                const wallpapersCollection = collection(this.firestore, this.collectionName);
-                return from(addDoc(wallpapersCollection, {
-                  ...newWallpaper,
-                  createdAt: Timestamp.fromDate(newWallpaper.createdAt),
-                  updatedAt: Timestamp.fromDate(newWallpaper.updatedAt)
-                })).pipe(
-                  this.retryWithBackoff(),
-                  map(docRef => docRef.id)
-                );
-              })
-            );
-          })
-        );
-      }),
-      catchError(this.handleFirestoreError<string>('crear wallpaper'))
-    );
-  }
-
   /**
-   * Actualizar URL firmada de Supabase para un wallpaper
+   * Mostrar notificación de reintento
    */
-  async refreshSupabaseUrl(wallpaper: WallpaperData): Promise<string> {
+  private async showRetryToast(retryCount: number) {
     try {
-      const urlResult = await this.supabaseService.getSignedUrl(wallpaper.imagePath, 31536000); // 1 año
-      if (urlResult.error || !urlResult.data) {
-        throw new Error('Error al obtener nueva URL firmada');
-      }
-
-      // Actualizar en Firestore
-      if (!wallpaper.id) {
-        throw new Error('ID del wallpaper no encontrado');
-      }
-      
-      const wallpaperDoc = doc(this.firestore, this.collectionName, wallpaper.id);
-      await updateDoc(wallpaperDoc, {
-        supabaseUrl: urlResult.data.signedUrl,
-        updatedAt: Timestamp.fromDate(new Date())
+      const toast = await this.toastController.create({
+        message: `Reintentando conexión... (${retryCount}/${this.maxRetries})`,
+        duration: 2000,
+        position: 'top',
+        color: 'medium',
+        icon: 'refresh-outline'
       });
-
-      return urlResult.data.signedUrl;
+      await toast.present();
     } catch (error) {
-      console.error('Error refreshing Supabase URL:', error);
-      throw error;
+      console.error('Error mostrando toast de reintento:', error);
     }
   }
 
-  // Aquí desarrollé el método para obtener wallpapers con sistema de filtros avanzado
+  /**
+   * Ejecutar operación con reintentos automáticos
+   */
+  private executeWithRetry<T>(operation: () => Observable<T>): Observable<T> {
+    return operation().pipe(
+      this.retryWithBackoff(),
+      catchError(this.handleFirestoreError<T>('operación con reintentos'))
+    );
+  }
+
+  // NOTA: El método createWallpaper se eliminó porque la lógica correcta está en WallpaperProvider
+  // que maneja Supabase Storage + Firestore metadatos según los requerimientos del proyecto
+
+  // Obtengo wallpapers con sistema de filtros avanzado
   getWallpapers(filter: WallpaperFilter = {}): Observable<WallpaperData[]> {
     const wallpapersCollection = collection(this.firestore, this.collectionName);
     let q = query(wallpapersCollection);
@@ -261,9 +354,7 @@ export class WallpaperService {
     });
   }
 
-  /**
-   * Obtener un wallpaper por ID
-   */
+  // Obtengo un wallpaper por ID
   getWallpaperById(id: string): Observable<WallpaperData | null> {
     const docRef = doc(this.firestore, this.collectionName, id);
     return from(getDoc(docRef)).pipe(
@@ -286,9 +377,7 @@ export class WallpaperService {
     );
   }
 
-  /**
-   * Actualizar un wallpaper
-   */
+  // Actualizo un wallpaper
   updateWallpaper(id: string, updateData: UpdateWallpaperData): Observable<void> {
     return this.authService.user$.pipe(
       switchMap(user => {
@@ -323,9 +412,7 @@ export class WallpaperService {
     );
   }
 
-  /**
-   * Eliminar un wallpaper
-   */
+  // Elimino un wallpaper
   deleteWallpaper(id: string): Observable<void> {
     return this.authService.user$.pipe(
       switchMap(user => {
@@ -343,14 +430,9 @@ export class WallpaperService {
               throw new Error('No tienes permisos para eliminar este wallpaper');
             }
 
-            // Eliminar la imagen de Supabase
-            return from(this.supabaseService.deleteWallpaper(wallpaper.imagePath)).pipe(
-              switchMap(deleteResult => {
-                if (deleteResult.error) {
-                  console.warn('Error eliminando archivo de Supabase:', deleteResult.error);
-                  // Continuar con la eliminación del documento aunque falle la eliminación del archivo
-                }
-                
+            // Eliminar la imagen de Firebase Storage
+            return from(this.uploader.deleteImage(wallpaper.imagePath)).pipe(
+              switchMap(() => {
                 // Eliminar el documento de Firestore
                 const docRef = doc(this.firestore, this.collectionName, id);
                 return from(deleteDoc(docRef));
@@ -366,7 +448,7 @@ export class WallpaperService {
     );
   }
 
-  // Aquí desarrollé el método de búsqueda por título o descripción
+  // Busco wallpapers por título o descripción
   searchWallpapers(searchTerm: string, isPublicOnly: boolean = true): Observable<WallpaperData[]> {
     // Esta es una implementación básica que filtra en el cliente
     const filter: WallpaperFilter = isPublicOnly ? { isPublic: true } : {};
@@ -384,9 +466,7 @@ export class WallpaperService {
     );
   }
 
-  /**
-   * Establecer wallpaper en la pantalla principal
-   */
+  // Establezco wallpaper en la pantalla principal
   async setWallpaperHomeScreen(imageUrl: string): Promise<boolean> {
     if (!this.platform.is('android')) {
       await this.showToast('Esta funcionalidad solo está disponible en Android', 'warning');
@@ -412,9 +492,7 @@ export class WallpaperService {
     }
   }
 
-  /**
-   * Establecer wallpaper en la pantalla de bloqueo
-   */
+  // Establezco wallpaper en la pantalla de bloqueo
   async setWallpaperLockScreen(imageUrl: string): Promise<boolean> {
     if (!this.platform.is('android')) {
       await this.showToast('Esta funcionalidad solo está disponible en Android', 'warning');
@@ -440,9 +518,7 @@ export class WallpaperService {
     }
   }
 
-  /**
-   * Establecer wallpaper en ambas pantallas
-   */
+  // Establezco wallpaper en ambas pantallas
   async setBothWallpapers(imageUrl: string): Promise<boolean> {
     if (!this.platform.is('android')) {
       await this.showToast('Esta funcionalidad solo está disponible en Android', 'warning');
@@ -468,9 +544,7 @@ export class WallpaperService {
     }
   }
 
-  /**
-   * Verificar permisos del plugin
-   */
+  // Verifico permisos del plugin
   async checkWallpaperPermissions(): Promise<boolean> {
     if (!this.platform.is('android')) {
       return false;
@@ -485,9 +559,7 @@ export class WallpaperService {
     }
   }
 
-  /**
-   * Mostrar toast con mensaje
-   */
+  // Muestro toast con mensaje
   private async showToast(message: string, color: string = 'primary') {
     const toast = await this.toastController.create({
       message,

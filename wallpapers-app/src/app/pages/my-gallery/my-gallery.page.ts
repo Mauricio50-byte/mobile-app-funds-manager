@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { AlertController, LoadingController, ToastController } from '@ionic/angular';
+import { AlertController, ToastController } from '@ionic/angular';
 import { WallpaperData, WallpaperFilter } from '../../core/interfaces/wallpaper.interface';
 import { WallpaperService } from '../../core/services/wallpaper.service';
 import { Auth } from '../../core/services/auth';
@@ -22,12 +22,13 @@ export class MyGalleryPage implements OnInit {
     private wallpaperService: WallpaperService,
     private auth: Auth,
     private alertController: AlertController,
-    private loadingController: LoadingController,
     private toastController: ToastController,
     public translationService: TranslationService
   ) { }
 
   async ngOnInit() {
+    // Esperar a que las traducciones se carguen antes de renderizar
+    await this.translationService.waitForTranslations();
     await this.loadCurrentUser();
     await this.loadMyWallpapers();
   }
@@ -51,25 +52,20 @@ export class MyGalleryPage implements OnInit {
 
     this.isLoading = true;
     try {
-      const filter: WallpaperFilter = {
-        uid: this.currentUser.uid,
-        orderBy: 'createdAt',
-        orderDirection: 'desc'
-      };
-
-      this.wallpaperService.getWallpapers(filter).subscribe({
+      // Uso el método getUserWallpapers que filtra automáticamente por UID del usuario autenticado
+      this.wallpaperService.getUserWallpapers().subscribe({
         next: (wallpapers) => {
           this.wallpapers = wallpapers;
           this.isLoading = false;
         },
         error: async (error) => {
-          console.error('Error loading wallpapers:', error);
+          console.error('Error loading user wallpapers:', error);
           await this.showToast('myGallery.loadError', 'danger');
           this.isLoading = false;
         }
       });
     } catch (error) {
-      console.error('Error loading wallpapers:', error);
+      console.error('Error loading user wallpapers:', error);
       await this.showToast('myGallery.loadError', 'danger');
       this.isLoading = false;
     }
@@ -97,18 +93,13 @@ export class MyGalleryPage implements OnInit {
   }
 
   private async setWallpaper(wallpaper: WallpaperData, type: 'home' | 'lock') {
-    const loading = await this.loadingController.create({
-      message: this.translationService.translate('myGallery.loading')
-    });
-    await loading.present();
-
     try {
       let success = false;
       
       if (type === 'home') {
-        success = await this.wallpaperService.setWallpaperHomeScreen(wallpaper.supabaseUrl);
+        success = await this.wallpaperService.setWallpaperHomeScreen(wallpaper.imageUrl);
       } else if (type === 'lock') {
-        success = await this.wallpaperService.setWallpaperLockScreen(wallpaper.supabaseUrl);
+        success = await this.wallpaperService.setWallpaperLockScreen(wallpaper.imageUrl);
       }
       
       if (success) {
@@ -119,8 +110,6 @@ export class MyGalleryPage implements OnInit {
     } catch (error) {
       console.error('Error applying wallpaper:', error);
       await this.showToast('myGallery.applyError', 'danger');
-    } finally {
-      await loading.dismiss();
     }
   }
 
@@ -156,11 +145,6 @@ export class MyGalleryPage implements OnInit {
   }
 
   private async performDelete(wallpaper: WallpaperData) {
-    const loading = await this.loadingController.create({
-      message: this.translationService.translate('myGallery.loading')
-    });
-    await loading.present();
-
     try {
       await this.wallpaperService.deleteWallpaper(wallpaper.id!);
       await this.loadMyWallpapers(); // Recargar la lista
@@ -168,8 +152,6 @@ export class MyGalleryPage implements OnInit {
     } catch (error) {
       console.error('Error deleting wallpaper:', error);
       await this.showToast('myGallery.deleteError', 'danger');
-    } finally {
-      await loading.dismiss();
     }
   }
 

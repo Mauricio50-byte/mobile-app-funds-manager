@@ -3,9 +3,9 @@ export interface WallpaperData {
   uid: string; // Firebase UID del usuario propietario
   title: string;
   description?: string;
-  supabaseUrl: string; // URL del archivo en Supabase Storage
+  imageUrl: string; // URL del archivo en Firebase Storage
   thumbnailUrl?: string; // Miniatura optimizada
-  imagePath: string; // Path en Supabase Storage
+  imagePath: string; // Path en Firebase Storage
   tags?: string[];
   category?: string;
   isPublic: boolean;

@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { environment } from '../../../environments/environment';
-import { Auth } from './auth';
 
 export interface UploadResult {
   success: boolean;
@@ -10,191 +9,223 @@ export interface UploadResult {
   error?: string;
 }
 
-export interface UploadProgress {
-  loaded: number;
-  total: number;
-  percentage: number;
-}
-
 @Injectable({
   providedIn: 'root'
 })
 export class Uploader {
-  private supabase: SupabaseClient;
-  private readonly BUCKET_NAME = 'wallpapers';
-  private readonly MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-  private readonly ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+  private supabase: SupabaseClient | null = null;
 
-  constructor(private auth: Auth) {
-    this.supabase = createClient(
-      environment.supabase.url,
-      environment.supabase.anonKey
-    );
+  constructor() {
+    // No inicializar Supabase en el constructor para evitar problemas de dependencia circular
   }
 
-  /**
-   * Verifica si Supabase está configurado correctamente
-   */
-  isConfigured(): boolean {
-    return environment.supabase.url !== 'https://nxarxomkgbbvqxinfnbn.supabase.co' && 
-            environment.supabase.anonKey !== 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54YXJ4b21rZ2JidnF4aW5mbmJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMTI4NDgsImV4cCI6MjA3Mzc4ODg0OH0.qr3rMqs0UZMQtgBT-prn6qYEUZ26oPMBCwCvUOdgaxA';
+  private getSupabaseClient(): SupabaseClient {
+    if (!this.supabase) {
+      console.log('Initializing Supabase client...');
+      console.log('Environment object:', environment);
+      console.log('Environment supabase:', (environment as any).supabase);
+      
+      const env = environment as any;
+      if (!env) {
+        console.error('Environment is null or undefined');
+        throw new Error('Environment no está definido');
+      }
+      
+      if (!env.supabase) {
+        console.error('Supabase config not found in environment:', env);
+        throw new Error('Configuración de Supabase no encontrada en environment');
+      }
+      
+      if (!env.supabase.url || !env.supabase.anonKey) {
+        console.error('Supabase URL or anonKey missing:', env.supabase);
+        throw new Error('URL o anonKey de Supabase no encontrados');
+      }
+      
+      console.log('Creating Supabase client with URL:', env.supabase.url);
+      this.supabase = createClient(
+        env.supabase.url, 
+        env.supabase.anonKey,
+        {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+            detectSessionInUrl: false
+          }
+        }
+      );
+    }
+    return this.supabase;
   }
 
-  /**
-   * Sube una imagen a Supabase Storage
-   */
-  async uploadImage(file: File, onProgress?: (progress: UploadProgress) => void): Promise<UploadResult> {
+  // Subo imágenes a Supabase Storage y genero URLs firmadas
+  private async ensureBucketExists(): Promise<void> {
     try {
-      // Verificar configuración de Supabase
-      if (!this.isConfigured()) {
+      const supabase = this.getSupabaseClient();
+      
+      // Verificar si el bucket existe
+      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+      
+      if (listError) {
+        console.warn('No se pudo verificar buckets:', listError);
+        return;
+      }
+
+      const bucketExists = buckets?.some(bucket => bucket.name === 'wallpapers');
+      
+      if (!bucketExists) {
+        console.log('Bucket "wallpapers" no existe, intentando crear...');
+        
+        // Intentar crear el bucket
+        const { error: createError } = await supabase.storage.createBucket('wallpapers', {
+          public: true,
+          allowedMimeTypes: ['image/*'],
+          fileSizeLimit: 50 * 1024 * 1024 // 50MB
+        });
+
+        if (createError) {
+          console.error('Error creando bucket:', createError);
+        } else {
+          console.log('Bucket "wallpapers" creado exitosamente');
+        }
+      }
+    } catch (error) {
+      console.warn('Error verificando/creando bucket:', error);
+    }
+  }
+
+  async uploadImage(file: File, userUid?: string): Promise<UploadResult> {
+    try {
+      if (!file) {
         return {
           success: false,
-          error: 'Supabase no está configurado correctamente'
+          error: 'No se proporcionó archivo'
         };
       }
 
-      // Verificar autenticación
-      const user = await this.auth.getCurrentUser();
-      if (!user) {
-        return {
-          success: false,
-          error: 'Usuario no autenticado'
-        };
-      }
+      // Verificar que el bucket existe
+      await this.ensureBucketExists();
 
-      // Validar archivo
-      const validation = this.validateFile(file);
-      if (!validation.valid) {
-        return {
-          success: false,
-          error: validation.error
-        };
-      }
+      // Genero un nombre único para el archivo
+      const timestamp = Date.now();
+      const randomString = Math.random().toString(36).substring(2, 15);
+      const fileExtension = file.name.split('.').pop();
+      const fileName = `${timestamp}_${randomString}.${fileExtension}`;
+      
+      // Creo la ruta del archivo incluyendo el UID del usuario si está disponible
+      const filePath = userUid ? `wallpapers/${userUid}/${fileName}` : `wallpapers/public/${fileName}`;
 
-      // Generar nombre único para el archivo
-      const fileName = this.generateFileName(file, user.uid);
-      const filePath = `${user.uid}/${fileName}`;
-
-      console.log('Subiendo imagen:', fileName);
-
-      // Subir archivo a Supabase Storage
-      const { data, error } = await this.supabase.storage
-        .from(this.BUCKET_NAME)
+      // Subo el archivo a Supabase Storage
+      const supabase = this.getSupabaseClient();
+      const { data, error } = await supabase.storage
+        .from('wallpapers')
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
         });
 
       if (error) {
-        console.error('Error al subir imagen:', error);
+        console.error('Error subiendo archivo a Supabase:', error);
         return {
           success: false,
-          error: `Error al subir imagen: ${error.message}`
+          error: error.message
         };
       }
 
-      // Obtener URL pública
-      const { data: urlData } = this.supabase.storage
-        .from(this.BUCKET_NAME)
-        .getPublicUrl(filePath);
+      // Genero URL firmada para acceder a la imagen
+      const { data: urlData } = await supabase.storage
+        .from('wallpapers')
+        .createSignedUrl(filePath, 60 * 60 * 24 * 365); // URL válida por 1 año
 
-      console.log('Imagen subida exitosamente:', urlData.publicUrl);
+      if (!urlData?.signedUrl) {
+        return {
+          success: false,
+          error: 'No se pudo generar la URL firmada'
+        };
+      }
 
       return {
         success: true,
-        url: urlData.publicUrl,
+        url: urlData.signedUrl,
         path: filePath
       };
 
     } catch (error) {
-      console.error('Error inesperado al subir imagen:', error);
+      console.error('Error en uploadImage:', error);
       return {
         success: false,
-        error: 'Error inesperado al subir la imagen'
+        error: error instanceof Error ? error.message : 'Error desconocido'
       };
     }
   }
 
-  /**
-   * Elimina una imagen de Supabase Storage
-   */
-  async deleteImage(filePath: string): Promise<boolean> {
+  // Elimino imágenes de Supabase Storage
+  async deleteImage(imagePath: string): Promise<boolean> {
     try {
-      if (!this.isConfigured()) {
-        console.error('Supabase no está configurado');
+      if (!imagePath) {
+        console.warn('No se proporcionó ruta de imagen para eliminar');
         return false;
       }
 
-      const { error } = await this.supabase.storage
-        .from(this.BUCKET_NAME)
-        .remove([filePath]);
+      const supabase = this.getSupabaseClient();
+      const { error } = await supabase.storage
+        .from('wallpapers')
+        .remove([imagePath]);
 
       if (error) {
-        console.error('Error al eliminar imagen:', error);
+        console.error('Error eliminando archivo de Supabase:', error);
         return false;
       }
 
-      console.log('Imagen eliminada exitosamente:', filePath);
       return true;
-
     } catch (error) {
-      console.error('Error inesperado al eliminar imagen:', error);
+      console.error('Error en deleteImage:', error);
       return false;
     }
   }
 
-  /**
-   * Obtiene la URL pública del bucket de storage
-   */
-  getStorageUrl(bucket: string = this.BUCKET_NAME): string {
-    return `${environment.supabase.url}/storage/v1/object/public/${bucket}`;
-  }
+  // Genero nueva URL firmada para una imagen existente
+  async getSignedUrl(imagePath: string, expiresIn: number = 60 * 60 * 24): Promise<string | null> {
+    try {
+      if (!imagePath) {
+        return null;
+      }
 
-  /**
-   * Valida el archivo antes de subirlo
-   */
-  private validateFile(file: File): { valid: boolean; error?: string } {
-    // Verificar tipo de archivo
-    if (!this.ALLOWED_TYPES.includes(file.type)) {
-      return {
-        valid: false,
-        error: 'Tipo de archivo no permitido. Solo se permiten imágenes JPEG, PNG y WebP'
-      };
+      const supabase = this.getSupabaseClient();
+      const { data, error } = await supabase.storage
+        .from('wallpapers')
+        .createSignedUrl(imagePath, expiresIn);
+
+      if (error) {
+        console.error('Error generando URL firmada:', error);
+        return null;
+      }
+
+      return data?.signedUrl || null;
+    } catch (error) {
+      console.error('Error en getSignedUrl:', error);
+      return null;
     }
+  }
 
-    // Verificar tamaño
-    if (file.size > this.MAX_FILE_SIZE) {
-      return {
-        valid: false,
-        error: 'El archivo es demasiado grande. Máximo 10MB'
-      };
+  // Obtengo información del archivo sin descargarlo
+  async getFileInfo(imagePath: string): Promise<any> {
+    try {
+      const supabase = this.getSupabaseClient();
+      const { data, error } = await supabase.storage
+        .from('wallpapers')
+        .list(imagePath.split('/').slice(0, -1).join('/'), {
+          search: imagePath.split('/').pop()
+        });
+
+      if (error) {
+        console.error('Error obteniendo información del archivo:', error);
+        return null;
+      }
+
+      return data?.[0] || null;
+    } catch (error) {
+      console.error('Error en getFileInfo:', error);
+      return null;
     }
-
-    return { valid: true };
-  }
-
-  /**
-   * Genera un nombre único para el archivo
-   */
-  private generateFileName(file: File, userId: string): string {
-    const timestamp = Date.now();
-    const randomString = Math.random().toString(36).substring(2, 15);
-    const extension = file.name.split('.').pop();
-    
-    return `wallpaper_${timestamp}_${randomString}.${extension}`;
-  }
-
-  /**
-   * Obtiene el tamaño máximo permitido en MB
-   */
-  getMaxFileSize(): number {
-    return this.MAX_FILE_SIZE / (1024 * 1024);
-  }
-
-  /**
-   * Obtiene los tipos de archivo permitidos
-   */
-  getAllowedTypes(): string[] {
-    return [...this.ALLOWED_TYPES];
   }
 }

@@ -2,9 +2,8 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { Auth } from '../../core/services/auth';
+import { AuthProvider } from '../../core/providers/auth.provider';
 import { NativeToast } from '../../core/services/native-toast';
-import { Loading } from '../../core/services/loading';
 import { TranslationService } from '../../core/services/translation.service';
 
 @Component({
@@ -20,16 +19,17 @@ export class LoginPage implements OnInit, OnDestroy {
 
   constructor(
     private formBuilder: FormBuilder,
-    private authService: Auth,
+    private authProvider: AuthProvider,
     private router: Router,
     private toast: NativeToast,
-    private loading: Loading,
     public translationService: TranslationService
   ) {
     this.loginForm = this.createLoginForm();
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    // Esperar a que las traducciones se carguen antes de renderizar
+    await this.translationService.waitForTranslations();
   }
 
   ngOnDestroy() {
@@ -49,7 +49,7 @@ export class LoginPage implements OnInit, OnDestroy {
       
       try {
         const { email, password } = this.loginForm.value;
-        await this.authService.login(email, password);
+        await this.authProvider.login({ email, password });
         
         const successMessage = this.translationService.translate('messages.loginSuccess');
         await this.toast.showSuccess(successMessage);
@@ -94,7 +94,7 @@ export class LoginPage implements OnInit, OnDestroy {
     this.isLoading = true;
     
     try {
-      await this.authService.loginWithGoogle();
+      await this.authProvider.loginWithGoogle();
       
       const successMessage = this.translationService.translate('messages.loginSuccess');
       await this.toast.showSuccess(successMessage);

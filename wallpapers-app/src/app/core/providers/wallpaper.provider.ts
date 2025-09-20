@@ -20,7 +20,7 @@ export class WallpaperProvider {
     private uploader: Uploader
   ) {}
 
-  // Crea un nuevo wallpaper
+  // Creo un nuevo wallpaper subiendo la imagen a Supabase y guardando metadatos en Firestore
   async createWallpaper(wallpaperData: CreateWallpaperData): Promise<WallpaperData> {
     try {
       const currentUser = this.authProvider.getCurrentUser();
@@ -28,19 +28,19 @@ export class WallpaperProvider {
         throw new Error('Usuario no autenticado');
       }
 
-      // Subir la imagen
-      const uploadResult: UploadResult = await this.uploader.uploadImage(wallpaperData.imageFile);
+      // Subo la imagen a Supabase Storage
+      const uploadResult: UploadResult = await this.uploader.uploadImage(wallpaperData.imageFile, currentUser.uid);
 
       if (!uploadResult.success) {
         throw new Error(uploadResult.error || 'Error al subir la imagen');
       }
 
-      // Crear el documento del wallpaper
+      // Creo el documento del wallpaper solo con metadatos en Firestore
       const newWallpaper: Omit<WallpaperData, 'id'> = {
         uid: currentUser.uid,
         title: wallpaperData.title,
         description: wallpaperData.description,
-        supabaseUrl: uploadResult.url!,
+        imageUrl: uploadResult.url!,
         imagePath: uploadResult.path!,
         tags: wallpaperData.tags || [],
         isPublic: wallpaperData.isPublic,
@@ -60,8 +60,7 @@ export class WallpaperProvider {
     }
   }
 
-   //Obtiene wallpapers del usuario actual
-
+  // Obtengo wallpapers del usuario actual (Mi Galería Personal)
   async getUserWallpapers(filter?: Partial<WallpaperFilter>): Promise<WallpaperData[]> {
     try {
       const currentUser = this.authProvider.getCurrentUser();
@@ -100,8 +99,7 @@ export class WallpaperProvider {
   }
 
 
-   // Obtiene wallpapers públicos
-
+  // Obtengo wallpapers públicos
   async getPublicWallpapers(filter?: Partial<WallpaperFilter>): Promise<WallpaperData[]> {
     try {
       const conditions: Array<{field: string, operator: any, value: any}> = [
@@ -134,7 +132,7 @@ export class WallpaperProvider {
     }
   }
 
-   // Obtiene un wallpaper por ID
+  // Obtengo un wallpaper por ID
   async getWallpaperById(id: string): Promise<WallpaperData | null> {
     try {
       const wallpaper = await this.query.getDocument('wallpapers', id);
@@ -145,9 +143,7 @@ export class WallpaperProvider {
     }
   }
 
-  /**
-   * Actualiza un wallpaper
-   */
+  // Actualizo un wallpaper
   async updateWallpaper(id: string, updateData: UpdateWallpaperData): Promise<void> {
     try {
       const currentUser = this.authProvider.getCurrentUser();
@@ -173,9 +169,7 @@ export class WallpaperProvider {
     }
   }
 
-  /**
-   * Elimina un wallpaper
-   */
+  // Elimino un wallpaper
   async deleteWallpaper(id: string): Promise<void> {
     try {
       const currentUser = this.authProvider.getCurrentUser();
@@ -200,9 +194,7 @@ export class WallpaperProvider {
     }
   }
 
-  /**
-   * Busca wallpapers por título o descripción
-   */
+  // Busco wallpapers por título o descripción
   async searchWallpapers(searchTerm: string, isPublicOnly: boolean = true): Promise<WallpaperData[]> {
     try {
       // Esta es una implementación básica que obtiene todos los documentos y filtra

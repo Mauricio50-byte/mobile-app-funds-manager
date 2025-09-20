@@ -9,13 +9,12 @@ import { AppRoutingModule } from './app-routing.module';
 
 // Firebase imports
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
-import { provideAuth, getAuth } from '@angular/fire/auth';
-import { provideFirestore, getFirestore } from '@angular/fire/firestore';
+import { provideAuth, getAuth, connectAuthEmulator } from '@angular/fire/auth';
+import { provideFirestore, getFirestore, connectFirestoreEmulator } from '@angular/fire/firestore';
 import { environment } from '../environments/environment';
 
 // Interceptors
 import { ErrorInterceptor } from './core/interceptors/error.interceptor';
-import { LoadingInterceptor } from './core/interceptors/loading.interceptor';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { CacheInterceptor } from './core/interceptors/cache.interceptor';
 
@@ -29,15 +28,25 @@ import { CacheInterceptor } from './core/interceptors/cache.interceptor';
   ],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
-    // Interceptors HTTP (orden importante: Auth -> Cache -> Loading -> Error)
+    // Interceptors HTTP (orden importante: Auth -> Cache -> Error)
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: CacheInterceptor, multi: true },
-    { provide: HTTP_INTERCEPTORS, useClass: LoadingInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
     // Firebase
     provideFirebaseApp(() => initializeApp(environment.firebase)),
-    provideAuth(() => getAuth()),
-    provideFirestore(() => getFirestore())
+    provideAuth(() => {
+      const auth = getAuth();
+      // Configuración para resolver NavigatorLockAcquireTimeoutError
+      if (typeof window !== 'undefined') {
+        auth.settings.appVerificationDisabledForTesting = false;
+      }
+      return auth;
+    }),
+    provideFirestore(() => {
+      const firestore = getFirestore();
+      // Configuración básica para Firestore
+      return firestore;
+    })
   ],
   bootstrap: [AppComponent],
 })

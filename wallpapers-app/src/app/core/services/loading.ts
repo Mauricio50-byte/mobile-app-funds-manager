@@ -7,15 +7,19 @@ import { LoadingController } from '@ionic/angular';
 export class Loading {
   private loadingElement: HTMLIonLoadingElement | null = null;
 
-  constructor(private loadingController: LoadingController) {}
+  constructor(
+    private loadingController: LoadingController
+  ) {}
 
-  async show(message: string = 'Cargando...'): Promise<void> {
+  async show(message?: string): Promise<void> {
     if (this.loadingElement) {
       await this.hide();
     }
 
+    const loadingMessage = message || 'Cargando...';
+
     this.loadingElement = await this.loadingController.create({
-      message,
+      message: loadingMessage,
       spinner: 'crescent'
     });
 
@@ -29,7 +33,7 @@ export class Loading {
     }
   }
 
-  async showWithDuration(message: string = 'Cargando...', duration: number = 3000): Promise<void> {
+  async showWithDuration(message?: string, duration: number = 3000): Promise<void> {
     await this.show(message);
     setTimeout(async () => {
       await this.hide();

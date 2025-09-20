@@ -132,3 +132,4 @@ Protegen el acceso a páginas privadas, verificando la sesión activa en **Fireb
 - La app debe compilar y ejecutarse en **dispositivos móviles o máquinas virtuales**.  
 - El plugin debe desarrollarse en **Java**.  
 - Se evaluará: integración Firebase, Firestore y Supabase.  
+

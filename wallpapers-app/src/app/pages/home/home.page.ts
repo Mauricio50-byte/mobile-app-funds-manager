@@ -17,7 +17,9 @@ export class HomePage implements OnInit {
     private auth: Auth
   ) { }
 
-  ngOnInit() {
+  async ngOnInit() {
+    // Esperar a que las traducciones se carguen antes de renderizar
+    await this.translationService.waitForTranslations();
   }
 
   navigateToUpdateUserInfo() {

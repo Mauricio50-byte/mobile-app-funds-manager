@@ -19,6 +19,8 @@ export class TranslationService {
   
   private currentLanguage: Language = 'es';
   private supportedLanguages: Language[] = ['es', 'en'];
+  private translationsLoaded = false;
+  private loadingPromise: Promise<void> | null = null;
 
   private translations: { [key in Language]: Translations } = {
     es: {},
@@ -30,7 +32,12 @@ export class TranslationService {
   }
 
   private async initializeService(): Promise<void> {
-    await this.loadTranslations();
+    if (this.loadingPromise) {
+      return this.loadingPromise;
+    }
+
+    this.loadingPromise = this.loadTranslations();
+    await this.loadingPromise;
     
     // Detectar idioma del navegador
     const browserLang = navigator.language.split('-')[0] as Language;
@@ -41,6 +48,8 @@ export class TranslationService {
     if (savedLang && this.supportedLanguages.includes(savedLang)) {
       this.currentLanguage = savedLang;
     }
+    
+    this.translationsLoaded = true;
     
     this.languageSubject.next(this.currentLanguage);
     this.currentLanguageSubject.next(this.currentLanguage);
@@ -55,9 +64,18 @@ export class TranslationService {
         lastValueFrom(this.http.get<Translations>('assets/i18n/en.json'))
       ]);
 
-      this.translations.es = esTranslations || {};
-      this.translations.en = enTranslations || {};
-      console.log('Translations loaded successfully:', { es: !!esTranslations, en: !!enTranslations });
+      // Verificar que las traducciones se cargaron correctamente
+      if (esTranslations && Object.keys(esTranslations).length > 0 && 
+          enTranslations && Object.keys(enTranslations).length > 0) {
+        this.translations.es = esTranslations;
+        this.translations.en = enTranslations;
+        console.log('Translations loaded successfully:', { 
+          es: Object.keys(esTranslations).length, 
+          en: Object.keys(enTranslations).length 
+        });
+      } else {
+        throw new Error('Empty translation files');
+      }
     } catch (error) {
       console.error('Error loading translations:', error);
       // Fallback a traducciones básicas si falla la carga
@@ -83,15 +101,35 @@ export class TranslationService {
     return this.currentLanguageSubject.value;
   }
 
+  isLoaded(): boolean {
+    return this.translationsLoaded;
+  }
+
+  async waitForTranslations(): Promise<void> {
+    if (this.translationsLoaded) {
+      return;
+    }
+    if (this.loadingPromise) {
+      await this.loadingPromise;
+    }
+  }
+
   translate(key: string, params?: string[]): string {
     if (!key) return '';
     
     const currentLang = this.getCurrentLanguage();
     
+    // Si las traducciones no están cargadas aún, retornar fallback sin warning
+    if (!this.translationsLoaded) {
+      return this.getFallbackTranslation(key);
+    }
+    
     // Verificar si las traducciones están cargadas
     if (!this.translations[currentLang] || Object.keys(this.translations[currentLang]).length === 0) {
-      console.warn(`Translations not loaded for language: ${currentLang}, using fallback`);
-      // Retornar traducciones básicas como fallback
+      // Solo mostrar warning una vez cuando ya deberían estar cargadas
+      if (this.translationsLoaded) {
+        console.warn(`Translations not loaded for language: ${currentLang}, using fallback`);
+      }
       return this.getFallbackTranslation(key);
     }
     
@@ -140,6 +178,7 @@ export class TranslationService {
   private getFallbackTranslation(key: string): string {
     // Traducciones básicas de fallback
     const fallbackTranslations: { [key: string]: string } = {
+      'common.loading': 'Cargando...',
       'upload.title': 'Subir Nuevo Fondo',
       'upload.titleLabel': 'Título',
       'upload.titlePlaceholder': 'Nombre de tu fondo de pantalla',

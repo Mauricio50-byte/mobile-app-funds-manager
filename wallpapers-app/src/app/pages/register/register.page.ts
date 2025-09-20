@@ -4,7 +4,6 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { Auth } from '../../core/services/auth';
 import { NativeToast } from '../../core/services/native-toast';
-import { Loading } from '../../core/services/loading';
 import { TranslationService } from '../../core/services/translation.service';
 
 @Component({
@@ -23,13 +22,14 @@ export class RegisterPage implements OnInit, OnDestroy {
     private authService: Auth,
     private router: Router,
     private toast: NativeToast,
-    private loading: Loading,
     public translationService: TranslationService
   ) {
     this.registerForm = this.createRegisterForm();
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    // Esperar a que las traducciones se carguen antes de renderizar
+    await this.translationService.waitForTranslations();
   }
 
   ngOnDestroy() {

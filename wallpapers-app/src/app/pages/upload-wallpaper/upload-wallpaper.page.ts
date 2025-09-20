@@ -2,9 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { LoadingController, ToastController, AlertController } from '@ionic/angular';
+import { ToastController, AlertController } from '@ionic/angular';
 import { CreateWallpaperData, UploadWallpaperResponse } from '../../core/interfaces/wallpaper.interface';
-import { WallpaperService } from '../../core/services/wallpaper.service';
+import { WallpaperProvider } from '../../core/providers/wallpaper.provider';
 import { Auth } from '../../core/services/auth';
 import { TranslationService } from '../../core/services/translation.service';
 import { FilePickerService } from '../../core/services/file-picker.service';
@@ -40,10 +40,9 @@ export class UploadWallpaperPage implements OnInit {
     private router: Router,
     private location: Location,
     private formBuilder: FormBuilder,
-    private wallpaperService: WallpaperService,
+    private wallpaperProvider: WallpaperProvider,
     private auth: Auth,
     private filePickerService: FilePickerService,
-    private loadingController: LoadingController,
     private toastController: ToastController,
     private alertController: AlertController,
     public translationService: TranslationService
@@ -58,34 +57,9 @@ export class UploadWallpaperPage implements OnInit {
   }
 
   async ngOnInit() {
+    // Esperar a que las traducciones se carguen antes de renderizar
+    await this.translationService.waitForTranslations();
     await this.loadCurrentUser();
-    
-    // Asegurar que las traducciones estén cargadas
-    await this.waitForTranslations();
-  }
-
-  private async waitForTranslations(): Promise<void> {
-    return new Promise((resolve) => {
-      // Verificar si las traducciones ya están disponibles
-      if (this.translationService.translate('upload.title') !== 'upload.title') {
-        resolve();
-        return;
-      }
-
-      // Esperar a que las traducciones se carguen
-      const subscription = this.translationService.currentLanguage$.subscribe(() => {
-        if (this.translationService.translate('upload.title') !== 'upload.title') {
-          subscription.unsubscribe();
-          resolve();
-        }
-      });
-
-      // Timeout de seguridad
-      setTimeout(() => {
-        subscription.unsubscribe();
-        resolve();
-      }, 3000);
-    });
   }
 
   private async loadCurrentUser() {
@@ -129,11 +103,6 @@ export class UploadWallpaperPage implements OnInit {
       return;
     }
 
-    const loading = await this.loadingController.create({
-      message: this.translationService.translate('upload.uploading')
-    });
-    await loading.present();
-
     this.isUploading = true;
 
     try {
@@ -153,25 +122,21 @@ export class UploadWallpaperPage implements OnInit {
         imageFile: this.selectedFile
       };
 
-      this.wallpaperService.createWallpaper(wallpaperData).subscribe({
-          next: async (wallpaperId) => {
-            await this.showToast('upload.uploadSuccess', 'success');
-            this.isUploading = false;
-            await loading.dismiss();
-            this.router.navigate(['/my-gallery']);
-          },
-          error: async (error) => {
-            console.error('Error uploading wallpaper:', error);
-            await this.showToast('upload.uploadError', 'danger');
-            this.isUploading = false;
-            await loading.dismiss();
-          }
-        });
+      // Uso WallpaperProvider que maneja correctamente Supabase Storage + Firestore metadatos
+      try {
+        const wallpaperId = await this.wallpaperProvider.createWallpaper(wallpaperData);
+        await this.showToast('upload.uploadSuccess', 'success');
+        this.isUploading = false;
+        this.router.navigate(['/my-gallery']);
+      } catch (error) {
+        console.error('Error uploading wallpaper:', error);
+        await this.showToast('upload.uploadError', 'danger');
+        this.isUploading = false;
+      }
     } catch (error) {
       console.error('Error uploading wallpaper:', error);
       await this.showToast('upload.uploadError', 'danger');
       this.isUploading = false;
-      await loading.dismiss();
     }
   }
 
