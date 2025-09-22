@@ -289,9 +289,6 @@ export class WallpaperService {
     );
   }
 
-  // NOTA: El método createWallpaper se eliminó porque la lógica correcta está en WallpaperProvider
-  // que maneja Supabase Storage + Firestore metadatos según los requerimientos del proyecto
-
   // Obtengo wallpapers con sistema de filtros avanzado
   getWallpapers(filter: WallpaperFilter = {}): Observable<WallpaperData[]> {
     const wallpapersCollection = collection(this.firestore, this.collectionName);
