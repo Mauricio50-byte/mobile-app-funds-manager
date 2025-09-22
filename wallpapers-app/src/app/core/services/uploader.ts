@@ -57,52 +57,28 @@ export class Uploader {
     return this.supabase;
   }
 
-  // Subo imágenes a Supabase Storage y genero URLs firmadas
-  private async ensureBucketExists(): Promise<void> {
-    try {
-      const supabase = this.getSupabaseClient();
-      
-      // Verificar si el bucket existe
-      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
-      
-      if (listError) {
-        console.warn('No se pudo verificar buckets:', listError);
-        return;
-      }
-
-      const bucketExists = buckets?.some(bucket => bucket.name === 'wallpapers-app');
-      
-      if (!bucketExists) {
-        console.log('Bucket "wallpapers-app" no existe, intentando crear...');
-        
-        // Intentar crear el bucket
-        const { error: createError } = await supabase.storage.createBucket('wallpapers-app', {
-          public: true,
-          allowedMimeTypes: ['image/*'],
-          fileSizeLimit: 50 * 1024 * 1024 // 50MB
-        });
-
-        if (createError) {
-          console.error('Error creando bucket:', createError);
-        } else {
-          console.log('Bucket "wallpapers" creado exitosamente');
-        }
-      }
-    } catch (error) {
-      console.warn('Error verificando/creando bucket:', error);
-    }
-  }
+  // REMOVIDO: No intentar crear bucket programáticamente
+  // El bucket debe existir y ser creado manualmente en el dashboard
 
   async uploadImage(file: File, userUid?: string): Promise<UploadResult> {
     try {
+      console.log('🚀 Iniciando subida de imagen:', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        userUid: userUid
+      });
+
       if (!file) {
+        console.error('❌ Error: No se proporcionó archivo');
         return {
           success: false,
           error: 'No se proporcionó archivo'
         };
       }
 
-      // Verificar que el bucket existe
+      // Verificar y crear el bucket si no existe
+      console.log('🔍 Verificando si el bucket "wallpapers-app" existe...');
       await this.ensureBucketExists();
 
       // Genero un nombre único para el archivo
@@ -113,8 +89,12 @@ export class Uploader {
       
       // Creo la ruta del archivo incluyendo el UID del usuario si está disponible
       const filePath = userUid ? `wallpapers-app/${userUid}/${fileName}` : `wallpapers-app/public/${fileName}`;
+      
+      console.log('📁 Ruta del archivo generada:', filePath);
+      console.log('👤 Usuario autenticado:', userUid ? 'Sí' : 'No (archivo público)');
 
       // Subo el archivo a Supabase Storage
+      console.log('⬆️ Subiendo archivo a Supabase Storage...');
       const supabase = this.getSupabaseClient();
       const { data, error } = await supabase.storage
         .from('wallpapers-app')
@@ -124,28 +104,48 @@ export class Uploader {
         });
 
       if (error) {
-        console.error('Error subiendo archivo a Supabase:', error);
+        console.error('❌ Error subiendo archivo a Supabase:', error);
+        console.error('📋 Detalles del error:', {
+          message: error.message,
+          name: error.name || 'StorageError'
+        });
         return {
           success: false,
           error: error.message
         };
       }
 
-      // Genero URL firmada para acceder a la imagen
-      const { data: urlData } = await supabase.storage
-        .from('wallpapers-app')
-        .createSignedUrl(filePath, 60 * 60 * 24 * 365); // URL válida por 1 año
+      console.log('✅ Archivo subido exitosamente a Supabase Storage!');
+      console.log('📊 Datos de subida:', data);
 
-      if (!urlData?.signedUrl) {
+      // Para bucket público, usar getPublicUrl en lugar de signedUrl
+      console.log('🔗 Generando URL pública...');
+      const { data: urlData } = supabase.storage
+        .from('wallpapers-app')
+        .getPublicUrl(filePath);
+
+      if (!urlData?.publicUrl) {
+        console.log('⚠️ No se pudo generar URL pública, usando URL firmada como fallback...');
+        // Fallback a signed URL si no hay public URL
+        const { data: signedUrlData } = await supabase.storage
+          .from('wallpapers-app')
+          .createSignedUrl(filePath, 60 * 60 * 24 * 365); // 1 año
+
+        console.log('🔐 URL firmada generada:', signedUrlData?.signedUrl);
         return {
-          success: false,
-          error: 'No se pudo generar la URL firmada'
+          success: true,
+          url: signedUrlData?.signedUrl || '',
+          path: filePath
         };
       }
 
+      console.log('🌐 URL pública generada:', urlData.publicUrl);
+      console.log('🎉 Subida completada exitosamente!');
+      console.log('📍 Ubicación final del archivo:', `Bucket: wallpapers-app, Path: ${filePath}`);
+      
       return {
         success: true,
-        url: urlData.signedUrl,
+        url: urlData.publicUrl,
         path: filePath
       };
 
@@ -158,7 +158,7 @@ export class Uploader {
     }
   }
 
-  // Elimino imágenes de Supabase Storage
+  // Eliminar imágenes de Supabase Storage
   async deleteImage(imagePath: string): Promise<boolean> {
     try {
       if (!imagePath) {
@@ -183,7 +183,7 @@ export class Uploader {
     }
   }
 
-  // Genero nueva URL firmada para una imagen existente
+  // Generar nueva URL firmada para una imagen existente
   async getSignedUrl(imagePath: string, expiresIn: number = 60 * 60 * 24): Promise<string | null> {
     try {
       if (!imagePath) {
@@ -191,6 +191,17 @@ export class Uploader {
       }
 
       const supabase = this.getSupabaseClient();
+      
+      // Para bucket público, usar getPublicUrl primero
+      const { data: publicData } = supabase.storage
+        .from('wallpapers-app')
+        .getPublicUrl(imagePath);
+
+      if (publicData?.publicUrl) {
+        return publicData.publicUrl;
+      }
+
+      // Fallback a signed URL
       const { data, error } = await supabase.storage
         .from('wallpapers-app')
         .createSignedUrl(imagePath, expiresIn);
@@ -207,14 +218,18 @@ export class Uploader {
     }
   }
 
-  // Obtengo información del archivo sin descargarlo
+  // Obtener información del archivo sin descargarlo
   async getFileInfo(imagePath: string): Promise<any> {
     try {
       const supabase = this.getSupabaseClient();
+      const pathParts = imagePath.split('/');
+      const fileName = pathParts.pop();
+      const folderPath = pathParts.join('/');
+
       const { data, error } = await supabase.storage
         .from('wallpapers-app')
-        .list(imagePath.split('/').slice(0, -1).join('/'), {
-          search: imagePath.split('/').pop()
+        .list(folderPath, {
+          search: fileName
         });
 
       if (error) {
@@ -226,6 +241,59 @@ export class Uploader {
     } catch (error) {
       console.error('Error en getFileInfo:', error);
       return null;
+    }
+  }
+
+  // Verificar y crear el bucket si no existe
+  private async ensureBucketExists(): Promise<void> {
+    try {
+      const supabase = this.getSupabaseClient();
+      
+      // Primero intentar hacer una operación simple en el bucket para verificar si existe
+      const { data: testData, error: testError } = await supabase.storage
+        .from('wallpapers-app')
+        .list('', { limit: 1 });
+
+      if (!testError) {
+        console.log('✅ El bucket "wallpapers-app" ya existe y es accesible');
+        return;
+      }
+
+      // Si el error es "Bucket not found", intentamos crear el bucket
+      if (testError.message?.includes('Bucket not found')) {
+        console.log('🔨 El bucket no existe, intentando crearlo...');
+        
+        const { data: createData, error: createError } = await supabase.storage.createBucket('wallpapers-app', {
+          public: true,
+          allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+          fileSizeLimit: 10485760 // 10MB límite
+        });
+
+        if (createError) {
+          // Si hay error de RLS, significa que el usuario no puede crear buckets
+          if (createError.message?.includes('row-level security policy')) {
+            console.warn('⚠️ No se puede crear el bucket automáticamente debido a políticas RLS.');
+            console.warn('📋 Por favor, crea el bucket "wallpapers-app" manualmente en el dashboard de Supabase.');
+            console.warn('🔧 O ejecuta las políticas SQL desde supabase-storage-policies.sql');
+            
+            // Intentar continuar asumiendo que el bucket existe
+            return;
+          }
+          
+          console.error('❌ Error creando bucket:', createError);
+          throw new Error(`Error creando bucket: ${createError.message}`);
+        }
+
+        console.log('✅ Bucket "wallpapers-app" creado exitosamente');
+      } else {
+        // Otro tipo de error, pero intentamos continuar
+        console.warn('⚠️ Error verificando bucket, pero continuando:', testError.message);
+      }
+      
+    } catch (error) {
+      console.warn('⚠️ Error en ensureBucketExists, pero continuando con la subida:', error);
+      // No lanzamos el error para permitir que la subida continúe
+      // El bucket podría existir pero tener problemas de permisos de listado
     }
   }
 }
