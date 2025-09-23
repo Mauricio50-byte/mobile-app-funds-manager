@@ -15,7 +15,15 @@ export class AppComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    // Asegurar que las traducciones se carguen al inicio de la aplicación
-    await this.translationService.waitForTranslations();
+    // En dispositivos móviles, no bloquear la carga esperando traducciones
+    if (typeof window !== 'undefined' && (window as any).Capacitor) {
+      // Inicializar traducciones en background sin bloquear
+      this.translationService.waitForTranslations().catch(error => {
+        console.warn('Background translation loading failed:', error);
+      });
+    } else {
+      // En web, esperar las traducciones
+      await this.translationService.waitForTranslations();
+    }
   }
 }

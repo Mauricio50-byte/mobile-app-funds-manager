@@ -36,10 +36,7 @@ export class TranslationService {
       return this.loadingPromise;
     }
 
-    this.loadingPromise = this.loadTranslations();
-    await this.loadingPromise;
-    
-    // Detectar idioma del navegador
+    // Detectar idioma del navegador primero
     const browserLang = navigator.language.split('-')[0] as Language;
     this.currentLanguage = this.supportedLanguages.includes(browserLang) ? browserLang : 'es';
     
@@ -48,20 +45,52 @@ export class TranslationService {
     if (savedLang && this.supportedLanguages.includes(savedLang)) {
       this.currentLanguage = savedLang;
     }
-    
-    this.translationsLoaded = true;
-    
+
+    // Emitir el idioma inmediatamente para que la UI no se bloquee
     this.languageSubject.next(this.currentLanguage);
     this.currentLanguageSubject.next(this.currentLanguage);
+
+    // Cargar traducciones de forma asíncrona sin bloquear la UI
+    this.loadingPromise = this.loadTranslations();
+    
+    // En dispositivos móviles, no esperar las traducciones para continuar
+    if (typeof window !== 'undefined' && (window as any).Capacitor) {
+      // Marcar como cargado inmediatamente en móviles para evitar bloqueos
+      this.translationsLoaded = true;
+      // Cargar traducciones en background
+      this.loadingPromise.catch(error => {
+        console.warn('Background translation loading failed:', error);
+      });
+    } else {
+      // En web, esperar las traducciones
+      try {
+        await this.loadingPromise;
+        this.translationsLoaded = true;
+      } catch (error) {
+        console.error('Translation loading failed:', error);
+        this.translationsLoaded = true; // Marcar como cargado para continuar
+      }
+    }
   }
 
   private async loadTranslations(): Promise<void> {
     try {
       console.log('Loading translations...');
-      // Cargar traducciones desde archivos JSON usando lastValueFrom
-      const [esTranslations, enTranslations] = await Promise.all([
-        lastValueFrom(this.http.get<Translations>('assets/i18n/es.json')),
-        lastValueFrom(this.http.get<Translations>('assets/i18n/en.json'))
+      
+      // Timeout más corto para dispositivos móviles
+      const isMobile = typeof window !== 'undefined' && (window as any).Capacitor;
+      const timeout = isMobile ? 2000 : 5000; // 2 segundos en móvil, 5 en web
+      
+      const esRequest = lastValueFrom(this.http.get<Translations>('assets/i18n/es.json'));
+      const enRequest = lastValueFrom(this.http.get<Translations>('assets/i18n/en.json'));
+      
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Translation loading timeout')), timeout);
+      });
+      
+      const [esTranslations, enTranslations] = await Promise.race([
+        Promise.all([esRequest, enRequest]),
+        timeoutPromise
       ]);
 
       // Verificar que las traducciones se cargaron correctamente
@@ -73,21 +102,88 @@ export class TranslationService {
           es: Object.keys(esTranslations).length, 
           en: Object.keys(enTranslations).length 
         });
+        
+        // Actualizar el estado de carga después de cargar exitosamente
+        if (!this.translationsLoaded) {
+          this.translationsLoaded = true;
+        }
       } else {
         throw new Error('Empty translation files');
       }
     } catch (error) {
       console.error('Error loading translations:', error);
-      // Fallback a traducciones básicas si falla la carga
-      this.translations.es = {
-        common: { loading: 'Cargando...', error: 'Error' },
-        home: { title: 'Inicio' }
-      };
-      this.translations.en = {
-        common: { loading: 'Loading...', error: 'Error' },
-        home: { title: 'Home' }
-      };
+      this.setFallbackTranslations();
     }
+  }
+
+  private setFallbackTranslations(): void {
+    // Fallback a traducciones básicas si falla la carga
+    this.translations.es = {
+      common: { 
+        loading: 'Cargando...', 
+        error: 'Error',
+        success: 'Éxito',
+        cancel: 'Cancelar',
+        accept: 'Aceptar',
+        email: 'Correo Electrónico',
+        password: 'Contraseña',
+        name: 'Nombre',
+        lastName: 'Apellido'
+      },
+      login: {
+        title: 'Iniciar Sesión',
+        subtitle: 'Inicia sesión para acceder a tus fondos',
+        loginButton: 'Iniciar Sesión',
+        noAccount: '¿No tienes cuenta?',
+        registerLink: 'Regístrate aquí'
+      },
+      register: {
+        title: 'Registro',
+        subtitle: 'Crea tu cuenta para comenzar',
+        registerButton: 'Registrarse',
+        hasAccount: '¿Ya tienes cuenta?',
+        loginLink: 'Inicia sesión aquí'
+      },
+      home: { title: 'Inicio' },
+      validation: {
+        required: 'Este campo es requerido',
+        email: 'Ingresa un correo electrónico válido'
+      }
+    };
+    this.translations.en = {
+      common: { 
+        loading: 'Loading...', 
+        error: 'Error',
+        success: 'Success',
+        cancel: 'Cancel',
+        accept: 'Accept',
+        email: 'Email',
+        password: 'Password',
+        name: 'Name',
+        lastName: 'Last Name'
+      },
+      login: {
+        title: 'Sign In',
+        subtitle: 'Sign in to access your wallpapers',
+        loginButton: 'Sign In',
+        noAccount: "Don't have an account?",
+        registerLink: 'Register here'
+      },
+      register: {
+        title: 'Register',
+        subtitle: 'Create your account to get started',
+        registerButton: 'Register',
+        hasAccount: 'Already have an account?',
+        loginLink: 'Sign in here'
+      },
+      home: { title: 'Home' },
+      validation: {
+        required: 'This field is required',
+        email: 'Enter a valid email address'
+      }
+    };
+    
+    console.warn('Using fallback translations');
   }
 
   setLanguage(language: Language): void {
@@ -109,8 +205,35 @@ export class TranslationService {
     if (this.translationsLoaded) {
       return;
     }
+    
+    // En dispositivos móviles, no esperar las traducciones para evitar bloqueos
+    const isMobile = typeof window !== 'undefined' && (window as any).Capacitor;
+    if (isMobile) {
+      console.log('Mobile device detected, skipping translation wait');
+      this.translationsLoaded = true;
+      return;
+    }
+    
+    // Timeout más corto para web
+    const timeoutPromise = new Promise<void>((resolve) => {
+      setTimeout(() => {
+        console.warn('Translation loading timeout, continuing with fallbacks');
+        this.translationsLoaded = true; // Marcar como cargado para evitar más bloqueos
+        resolve();
+      }, 3000); // 3 segundos de timeout para web
+    });
+    
     if (this.loadingPromise) {
-      await this.loadingPromise;
+      try {
+        await Promise.race([this.loadingPromise, timeoutPromise]);
+      } catch (error) {
+        console.error('Error loading translations:', error);
+        this.setFallbackTranslations();
+        this.translationsLoaded = true; // Marcar como cargado para continuar
+      }
+    } else {
+      // Si no hay promesa de carga, marcar como cargado inmediatamente
+      this.translationsLoaded = true;
     }
   }
 
@@ -225,5 +348,29 @@ export class TranslationService {
       
       return () => subscription.unsubscribe();
     });
+  }
+
+  // Método optimizado para inicialización de páginas
+  async initializePageTranslations(): Promise<void> {
+    const isMobile = typeof window !== 'undefined' && (window as any).Capacitor;
+    
+    if (isMobile) {
+      // En móviles, no bloquear la carga
+      console.log('Mobile device: initializing translations in background');
+      this.waitForTranslations().catch(error => {
+        console.warn('Background translation loading failed:', error);
+      });
+      return;
+    } else {
+      // En web, esperar con timeout corto
+      try {
+        await Promise.race([
+          this.waitForTranslations(),
+          new Promise<void>(resolve => setTimeout(resolve, 1000)) // 1 segundo máximo
+        ]);
+      } catch (error) {
+        console.warn('Translation initialization timeout:', error);
+      }
+    }
   }
 }

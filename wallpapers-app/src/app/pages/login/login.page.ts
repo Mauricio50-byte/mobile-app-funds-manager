@@ -28,8 +28,8 @@ export class LoginPage implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
-    // Esperar a que las traducciones se carguen antes de renderizar
-    await this.translationService.waitForTranslations();
+    // Inicializar traducciones de forma optimizada para móviles
+    await this.translationService.initializePageTranslations();
   }
 
   ngOnDestroy() {

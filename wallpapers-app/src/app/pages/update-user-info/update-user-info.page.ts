@@ -29,8 +29,8 @@ export class UpdateUserInfoPage implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
-    // Esperar a que las traducciones se carguen antes de renderizar
-    await this.translationService.waitForTranslations();
+    // Inicializar traducciones de forma optimizada para móviles
+    await this.translationService.initializePageTranslations();
     
     // Como la ruta ya está protegida por authGuard, el usuario está garantizado que está autenticado
     // Suscribirse al estado de autenticación para cargar datos del usuario
