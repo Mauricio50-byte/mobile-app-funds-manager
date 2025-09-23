@@ -20,9 +20,36 @@ export interface WallpaperPluginInterface {
   setBothWallpapers(options: { imageUrl?: string; base64Image?: string }): Promise<{ success: boolean; message: string }>;
 
   /**
-   * Verifica los permisos necesarios para cambiar wallpapers
+   * Establece el wallpaper para la pantalla principal (alias para compatibilidad)
+   * @param options - Opciones que incluyen base64Image
    */
-  checkPermissions(): Promise<{ hasPermission: boolean; message: string }>;
+  setHomeWallpaper(options: { base64Image: string }): Promise<{ success: boolean; message: string }>;
+
+  /**
+   * Establece el wallpaper para la pantalla de bloqueo (alias para compatibilidad)
+   * @param options - Opciones que incluyen base64Image
+   */
+  setLockWallpaper(options: { base64Image: string }): Promise<{ success: boolean; message: string }>;
+
+  /**
+   * Verifica los permisos necesarios para establecer wallpapers
+   */
+  checkPermissions(): Promise<{ 
+    hasPermission: boolean; 
+    isWallpaperSupported: boolean; 
+    hasSetWallpaperPermission: boolean; 
+    hasMediaPermission: boolean; 
+    androidVersion: number; 
+  }>;
+
+  /**
+   * Solicita los permisos necesarios para establecer wallpapers
+   */
+  requestPermissions(): Promise<{ 
+    granted: boolean; 
+    hasSetWallpaperPermission: boolean; 
+    hasMediaPermission: boolean; 
+  }>;
 }
 
 const WallpaperPlugin = registerPlugin<WallpaperPluginInterface>('WallpaperPlugin');

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, from, map, switchMap, catchError, of, retry, timer, throwError } from 'rxjs';
 import { ToastController, Platform } from '@ionic/angular';
+import { HttpClient } from '@angular/common/http';
 import { 
   Firestore, 
   collection, 
@@ -21,7 +22,6 @@ import { Auth } from './auth';
 import { Uploader } from './uploader';
 import WallpaperPlugin from '../../plugins/wallpaper-plugin';
 
-// Aquí creé el servicio para manejar toda la lógica de negocio de wallpapers
 // Implementé CRUD completo en Firestore, autenticación y subida de archivos
 
 @Injectable({
@@ -37,7 +37,8 @@ export class WallpaperService {
     private uploader: Uploader,
     private authService: Auth,
     private platform: Platform,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private http: HttpClient
   ) {}
 
   /**
@@ -463,6 +464,273 @@ export class WallpaperService {
     );
   }
 
+  /**
+   * Descarga una imagen desde una URL y la convierte a base64
+   */
+  private async downloadImageAsBase64(imageUrl: string): Promise<string> {
+    try {
+      console.log('Descargando imagen desde:', imageUrl);
+      
+      // Configurar headers para evitar problemas de CORS
+      const headers = {
+        'Accept': 'image/*',
+        'Cache-Control': 'no-cache'
+      };
+      
+      // Descargar la imagen como blob
+      const response = await this.http.get(imageUrl, { 
+        responseType: 'blob',
+        headers: headers
+      }).toPromise();
+      
+      if (!response) {
+        throw new Error('No se pudo descargar la imagen');
+      }
+
+      // Convertir blob a base64
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64 = reader.result as string;
+          // Remover el prefijo "data:image/...;base64," para obtener solo el base64
+          const base64Data = base64.split(',')[1];
+          console.log('Imagen convertida a base64, tamaño:', base64Data.length);
+          
+          // Validar que el base64 no esté vacío
+          if (!base64Data || base64Data.length === 0) {
+            reject(new Error('La imagen descargada está vacía'));
+            return;
+          }
+          
+          resolve(base64Data);
+        };
+        reader.onerror = () => reject(new Error('Error al convertir imagen a base64'));
+        reader.readAsDataURL(response);
+      });
+    } catch (error: any) {
+      console.error('Error descargando imagen:', error);
+      
+      // Si es un error de CORS, intentar con el plugin nativo directamente
+      if (error.status === 0 || error.message?.includes('CORS')) {
+        console.log('Error de CORS detectado, intentando descarga directa con plugin nativo...');
+        throw new Error('Error de CORS: La imagen no se puede descargar desde el navegador. Intenta con una imagen de otro servidor.');
+      }
+      
+      throw new Error(`Error al descargar imagen: ${error.message || 'Error desconocido'}`);
+    }
+  }
+
+  /**
+   * Valida si una URL es válida
+   */
+  private isValidUrl(url: string): boolean {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Aplica un fondo de pantalla de bloqueo
+   */
+  async setLockWallpaper(imageUrl: string): Promise<void> {
+    try {
+      console.log('Iniciando proceso para establecer fondo de pantalla de bloqueo');
+      
+      // Verificar y solicitar permisos primero
+      const hasPermissions = await this.checkAndRequestPermissions();
+      if (!hasPermissions) {
+        throw new Error('Permission denied: Se requieren permisos para establecer fondos de pantalla');
+      }
+      
+      // Descargar y convertir imagen
+      const base64Image = await this.downloadImageAsBase64(imageUrl);
+      
+      // Aplicar fondo de pantalla
+      await WallpaperPlugin.setLockWallpaper({ base64Image });
+      
+      console.log('Fondo de pantalla de bloqueo establecido exitosamente');
+      
+      // Mostrar mensaje de éxito
+      await this.toastController.create({
+        message: 'Fondo de pantalla de bloqueo aplicado correctamente',
+        duration: 3000,
+        color: 'success',
+        position: 'bottom'
+      }).then(toast => toast.present());
+      
+    } catch (error: any) {
+      console.error('Error al establecer fondo de pantalla de bloqueo:', error);
+      
+      let errorMessage = 'Error al aplicar fondo de pantalla de bloqueo';
+      
+      if (error.message?.includes('Permission denied')) {
+        errorMessage = 'Permisos denegados. Por favor, concede los permisos necesarios en la configuración de la aplicación.';
+      } else if (error.message?.includes('CORS')) {
+        errorMessage = 'No se puede descargar la imagen. Intenta con una imagen de otro servidor.';
+      } else if (error.message?.includes('Network')) {
+        errorMessage = 'Error de conexión. Verifica tu conexión a internet.';
+      }
+      
+      // Mostrar mensaje de error
+      await this.toastController.create({
+        message: errorMessage,
+        duration: 5000,
+        color: 'danger',
+        position: 'bottom'
+      }).then(toast => toast.present());
+      
+      throw error;
+    }
+  }
+
+  /**
+   * Solicita permisos dinámicos para Android 13+
+   */
+  private async requestMediaPermissions(): Promise<boolean> {
+    try {
+      if (this.platform.is('android')) {
+        console.log('Solicitando permisos de wallpaper...');
+        
+        // Primero verificar permisos actuales
+        const permissionStatus = await WallpaperPlugin.checkPermissions();
+        console.log('Estado actual de permisos:', permissionStatus);
+        
+        if (permissionStatus.hasPermission) {
+          console.log('Todos los permisos ya están concedidos');
+          return true;
+        }
+        
+        // Solicitar permisos si no los tenemos
+        console.log('Solicitando permisos faltantes...');
+        const result = await WallpaperPlugin.requestPermissions();
+        console.log('Resultado de solicitud de permisos:', result);
+        
+        if (result.granted) {
+          console.log('Permisos concedidos exitosamente');
+          return true;
+        } else {
+          console.warn('Permisos denegados por el usuario');
+          await this.showToast('Se necesitan permisos para establecer wallpapers', 'warning');
+          return false;
+        }
+      }
+      return true;
+    } catch (error) {
+      console.error('Error requesting media permissions:', error);
+      await this.showToast('Error al solicitar permisos', 'danger');
+      return false;
+    }
+  }
+
+  /**
+   * Muestra un toast con el mensaje especificado
+   */
+  private async showToast(message: string, color: 'success' | 'warning' | 'danger' = 'success'): Promise<void> {
+    const toast = await this.toastController.create({
+      message,
+      duration: 3000,
+      color,
+      position: 'bottom'
+    });
+    await toast.present();
+  }
+
+  /**
+   * Verifica y solicita permisos necesarios
+   */
+  private async checkAndRequestPermissions(): Promise<boolean> {
+    try {
+      if (this.platform.is('android')) {
+        console.log('Verificando permisos de wallpaper...');
+        
+        // Primero verificar permisos actuales
+        const permissionStatus = await WallpaperPlugin.checkPermissions();
+        console.log('Estado actual de permisos:', permissionStatus);
+        
+        if (permissionStatus.hasPermission) {
+          console.log('Todos los permisos ya están concedidos');
+          return true;
+        }
+        
+        // Solicitar permisos si no los tenemos
+        console.log('Solicitando permisos faltantes...');
+        const result = await WallpaperPlugin.requestPermissions();
+        console.log('Resultado de solicitud de permisos:', result);
+        
+        if (result.granted) {
+          console.log('Permisos concedidos exitosamente');
+          return true;
+        } else {
+          console.warn('Permisos denegados por el usuario');
+          await this.showToast('Se necesitan permisos para establecer wallpapers', 'warning');
+          return false;
+        }
+      }
+      return true;
+    } catch (error) {
+      console.error('Error checking and requesting permissions:', error);
+      await this.showToast('Error al verificar permisos', 'danger');
+      return false;
+    }
+  }
+
+  /**
+   * Aplica un fondo de pantalla de inicio
+   */
+  async setHomeWallpaper(imageUrl: string): Promise<void> {
+    try {
+      console.log('Iniciando proceso para establecer fondo de pantalla de inicio');
+      
+      // Verificar y solicitar permisos primero
+      const hasPermissions = await this.checkAndRequestPermissions();
+      if (!hasPermissions) {
+        throw new Error('Permission denied: Se requieren permisos para establecer fondos de pantalla');
+      }
+      
+      // Descargar y convertir imagen
+      const base64Image = await this.downloadImageAsBase64(imageUrl);
+      
+      // Aplicar fondo de pantalla
+      await WallpaperPlugin.setHomeWallpaper({ base64Image });
+      
+      console.log('Fondo de pantalla de inicio establecido exitosamente');
+      
+      // Mostrar mensaje de éxito
+      await this.toastController.create({
+        message: 'Fondo de pantalla de inicio aplicado correctamente',
+        duration: 3000,
+        color: 'success',
+        position: 'bottom'
+      }).then(toast => toast.present());
+      
+    } catch (error: any) {
+      console.error('Error al establecer fondo de pantalla de inicio:', error);
+      
+      let errorMessage = 'Error al aplicar fondo de pantalla de inicio';
+      
+      if (error.message?.includes('Permission denied')) {
+        errorMessage = 'Permisos denegados. Por favor, concede los permisos necesarios en la configuración de la aplicación.';
+      } else if (error.message?.includes('CORS')) {
+        errorMessage = 'No se puede descargar la imagen. Intenta con una imagen de otro servidor.';
+      } else if (error.message?.includes('Network')) {
+        errorMessage = 'Error de conexión. Verifica tu conexión a internet.';
+      }
+      
+      // Mostrar mensaje de error
+      await this.toastController.create({
+        message: errorMessage,
+        duration: 5000,
+        color: 'danger',
+        position: 'bottom'
+      }).then(toast => toast.present());
+      
+      throw error;
+    }
+  }
+
   // Establezco wallpaper en la pantalla principal
   async setWallpaperHomeScreen(imageUrl: string): Promise<boolean> {
     if (!this.platform.is('android')) {
@@ -470,10 +738,30 @@ export class WallpaperService {
       return false;
     }
 
+    if (!this.isValidUrl(imageUrl)) {
+      await this.showToast('URL de imagen no válida', 'danger');
+      return false;
+    }
+
     try {
-      await this.showToast('Estableciendo wallpaper...', 'primary');
+      await this.showToast('Descargando imagen...', 'success');
       
-      const result = await WallpaperPlugin.setWallpaperHomeScreen({ imageUrl });
+      // Verificar permisos primero
+      const hasPermissions = await this.requestMediaPermissions();
+      if (!hasPermissions) {
+        await this.showToast('Permisos insuficientes para establecer wallpaper', 'danger');
+        return false;
+      }
+
+      // Descargar y convertir imagen a base64
+      const base64Image = await this.downloadImageAsBase64(imageUrl);
+      
+      await this.showToast('Estableciendo wallpaper...', 'success');
+      
+      // Enviar base64 al plugin en lugar de URL
+      const result = await WallpaperPlugin.setWallpaperHomeScreen({ 
+        base64Image 
+      });
       
       if (result.success) {
         await this.showToast('Wallpaper establecido correctamente en la pantalla principal', 'success');
@@ -496,10 +784,30 @@ export class WallpaperService {
       return false;
     }
 
+    if (!this.isValidUrl(imageUrl)) {
+      await this.showToast('URL de imagen no válida', 'danger');
+      return false;
+    }
+
     try {
-      await this.showToast('Estableciendo wallpaper de bloqueo...', 'primary');
+      await this.showToast('Descargando imagen...', 'success');
       
-      const result = await WallpaperPlugin.setWallpaperLockScreen({ imageUrl });
+      // Verificar permisos primero
+      const hasPermissions = await this.requestMediaPermissions();
+      if (!hasPermissions) {
+        await this.showToast('Permisos insuficientes para establecer wallpaper', 'danger');
+        return false;
+      }
+
+      // Descargar y convertir imagen a base64
+      const base64Image = await this.downloadImageAsBase64(imageUrl);
+      
+      await this.showToast('Estableciendo wallpaper de bloqueo...', 'success');
+      
+      // Enviar base64 al plugin en lugar de URL
+      const result = await WallpaperPlugin.setWallpaperLockScreen({ 
+        base64Image 
+      });
       
       if (result.success) {
         await this.showToast('Wallpaper establecido correctamente en la pantalla de bloqueo', 'success');
@@ -522,10 +830,30 @@ export class WallpaperService {
       return false;
     }
 
+    if (!this.isValidUrl(imageUrl)) {
+      await this.showToast('URL de imagen no válida', 'danger');
+      return false;
+    }
+
     try {
-      await this.showToast('Estableciendo wallpaper en ambas pantallas...', 'primary');
+      await this.showToast('Descargando imagen...', 'success');
       
-      const result = await WallpaperPlugin.setBothWallpapers({ imageUrl });
+      // Verificar permisos primero
+      const hasPermissions = await this.requestMediaPermissions();
+      if (!hasPermissions) {
+        await this.showToast('Permisos insuficientes para establecer wallpaper', 'danger');
+        return false;
+      }
+
+      // Descargar y convertir imagen a base64
+      const base64Image = await this.downloadImageAsBase64(imageUrl);
+      
+      await this.showToast('Estableciendo wallpaper en ambas pantallas...', 'success');
+      
+      // Enviar base64 al plugin en lugar de URL
+      const result = await WallpaperPlugin.setBothWallpapers({ 
+        base64Image 
+      });
       
       if (result.success) {
         await this.showToast('Wallpaper establecido correctamente en ambas pantallas', 'success');
@@ -549,6 +877,13 @@ export class WallpaperService {
 
     try {
       const result = await WallpaperPlugin.checkPermissions();
+      console.log('Permisos de wallpaper:', {
+        hasPermission: result.hasPermission,
+        isWallpaperSupported: result.isWallpaperSupported,
+        hasSetWallpaperPermission: result.hasSetWallpaperPermission,
+        hasMediaPermission: result.hasMediaPermission,
+        androidVersion: result.androidVersion
+      });
       return result.hasPermission;
     } catch (error) {
       console.error('Error checking wallpaper permissions:', error);
@@ -556,14 +891,4 @@ export class WallpaperService {
     }
   }
 
-  // Muestro toast con mensaje
-  private async showToast(message: string, color: string = 'primary') {
-    const toast = await this.toastController.create({
-      message,
-      duration: 3000,
-      color,
-      position: 'bottom'
-    });
-    await toast.present();
-  }
 }
