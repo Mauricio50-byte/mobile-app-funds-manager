@@ -42,7 +42,7 @@ export class WallpaperService {
   ) {}
 
   /**
-   * Manejo de errores con reintentos para operaciones de Firestore
+   * Manejo errores con reintentos para operaciones de Firestore
    */
   private handleFirestoreError<T>(operation: string) {
     return (error: any): Observable<T> => {

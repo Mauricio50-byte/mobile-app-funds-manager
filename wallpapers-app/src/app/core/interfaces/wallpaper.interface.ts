@@ -1,11 +1,11 @@
 export interface WallpaperData {
   id?: string;
-  uid: string; // Firebase UID del usuario propietario
+  uid: string; // UID de Firebase del usuario propietario
   title: string;
   description?: string;
   imageUrl: string; // URL del archivo en Firebase Storage
   thumbnailUrl?: string; // Miniatura optimizada
-  imagePath: string; // Path en Firebase Storage
+  imagePath: string; // Ruta en Firebase Storage
   tags?: string[];
   category?: string;
   isPublic: boolean;
@@ -14,7 +14,7 @@ export interface WallpaperData {
 }
 
 export interface WallpaperFilter {
-  uid?: string; // Firebase UID para filtrar por usuario
+  uid?: string; // UID de Firebase para filtrar por usuario
   isPublic?: boolean;
   tags?: string[];
   category?: string;

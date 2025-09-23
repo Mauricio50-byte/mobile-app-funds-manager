@@ -1,5 +1,5 @@
-// Authentication provider
+// Proveedor de autenticación
 export * from './auth.provider';
 
-// Wallpaper provider
+// Proveedor de wallpapers
 export * from './wallpaper.provider';

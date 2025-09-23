@@ -19,7 +19,7 @@
     </div>
 
     <form [formGroup]="registerForm" (ngSubmit)="onRegister()">
-      <!-- Campo Nombre -->
+      <!-- Campo de nombre -->
       <app-input
         [label]="translationService.translate('common.name')"
         type="text"
@@ -29,7 +29,7 @@
         [errorMessage]="getNameErrorMessage()">
       </app-input>
 
-      <!-- Campo Apellido -->
+      <!-- Campo de apellido -->
       <app-input
         [label]="translationService.translate('common.lastName')"
         type="text"
@@ -39,7 +39,7 @@
         [errorMessage]="getLastNameErrorMessage()">
       </app-input>
 
-      <!-- Campo Email -->
+      <!-- Campo de email -->
       <app-input
         [label]="translationService.translate('common.email')"
         type="email"
@@ -49,7 +49,7 @@
         [errorMessage]="getEmailErrorMessage()">
       </app-input>
 
-      <!-- Campo Password -->
+      <!-- Campo de contraseña -->
       <app-input
         [label]="translationService.translate('common.password')"
         type="password"
@@ -59,7 +59,7 @@
         [errorMessage]="getPasswordErrorMessage()">
       </app-input>
 
-      <!-- Campo Confirmar Password -->
+      <!-- Campo de confirmación de contraseña -->
       <app-input
         [label]="translationService.translate('common.confirmPassword')"
         type="password"
@@ -69,7 +69,7 @@
         [errorMessage]="getConfirmPasswordErrorMessage()">
       </app-input>
 
-      <!-- Botón Register -->
+      <!-- Botón de registro -->
       <app-button
         [text]="translationService.translate('register.registerButton')"
         type="submit"
@@ -85,7 +85,7 @@
       <span>{{ translationService.translate('register.or') }}</span>
     </div>
 
-    <!-- Botón oficial de Google -->
+    <!-- Botón de Google -->
     <button 
       class="google-signin-button" 
       (click)="onGoogleRegister()" 
@@ -101,7 +101,7 @@
       <span class="google-text">{{ translationService.translate('register.googleButton') }}</span>
     </button>
 
-    <!-- Link a Login -->
+    <!-- Enlace a inicio de sesión -->
     <div class="login-link">
       <p>{{ translationService.translate('register.hasAccount') }}</p>
       <app-button

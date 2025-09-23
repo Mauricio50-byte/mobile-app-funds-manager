@@ -16,7 +16,7 @@
     </div>
 
     <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
-      <!-- Campo Email -->
+      <!-- Campo de email -->
       <app-input
         [label]="translationService.translate('common.email')"
         type="email"
@@ -26,7 +26,7 @@
         [errorMessage]="getEmailErrorMessage()">
       </app-input>
 
-      <!-- Campo Password -->
+      <!-- Campo de contraseña -->
       <app-input
         [label]="translationService.translate('common.password')"
         type="password"
@@ -36,7 +36,7 @@
         [errorMessage]="getPasswordErrorMessage()">
       </app-input>
 
-      <!-- Botón Login -->
+      <!-- Botón de inicio de sesión -->
       <app-button
         [text]="translationService.translate('login.loginButton')"
         type="submit"
@@ -52,7 +52,7 @@
       <span>{{ translationService.translate('login.or') }}</span>
     </div>
 
-    <!-- Botón oficial de Google -->
+    <!-- Botón de Google -->
     <button 
       class="google-signin-button" 
       (click)="onGoogleLogin()" 
@@ -68,7 +68,7 @@
       <span class="google-text">{{ translationService.translate('login.googleButton') }}</span>
     </button>
 
-    <!-- Link a Register -->
+    <!-- Enlace a registro -->
     <div class="register-link">
       <p>{{ translationService.translate('login.noAccount') }}</p>
       <app-button

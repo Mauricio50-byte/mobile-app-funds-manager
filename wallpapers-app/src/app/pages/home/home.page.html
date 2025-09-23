@@ -18,18 +18,18 @@
   </ion-header>
 
   <div class="home-container">
-    <!-- Welcome Section -->
+    <!-- Sección de bienvenida -->
     <div class="welcome-section">
       <ion-icon name="images-outline" size="large" color="primary"></ion-icon>
       <h1>{{ translationService.translate('home.welcome') }}</h1>
       <p>{{ translationService.translate('home.subtitle') }}</p>
     </div>
 
-    <!-- Quick Actions -->
+    <!-- Acciones rápidas -->
     <div class="quick-actions">
       <h2>{{ translationService.translate('home.quickActions') }}</h2>
       
-      <!-- User Profile Card -->
+      <!-- Tarjeta de perfil de usuario -->
       <ion-card class="action-card" button (click)="navigateToUpdateUserInfo()">
         <ion-card-content>
           <div class="card-content">
@@ -43,7 +43,7 @@
         </ion-card-content>
       </ion-card>
 
-      <!-- Wallpapers Card -->
+      <!-- Tarjeta de wallpapers -->
       <ion-card class="action-card" button (click)="navigateToMyGallery()">
         <ion-card-content>
           <div class="card-content">
@@ -57,7 +57,7 @@
         </ion-card-content>
       </ion-card>
 
-      <!-- Upload Card -->
+      <!-- Tarjeta de subida -->
       <ion-card class="action-card" button (click)="navigateToUploadWallpaper()">
         <ion-card-content>
           <div class="card-content">
@@ -72,7 +72,7 @@
       </ion-card>
     </div>
 
-    <!-- Floating Action Button -->
+    <!-- Botón de acción flotante -->
     <ion-fab vertical="bottom" horizontal="end" slot="fixed">
       <ion-fab-button color="primary" (click)="navigateToUpdateUserInfo()">
         <ion-icon name="settings-outline"></ion-icon>

@@ -183,10 +183,10 @@ export class WallpaperProvider {
         throw new Error('No tienes permisos para eliminar este wallpaper');
       }
 
-      // Eliminar la imagen del storage
+      // Elimino la imagen del storage
       await this.uploader.deleteImage(wallpaper.imagePath);
 
-      // Eliminar el documento
+      // Elimino el documento
       await this.query.deleteDocument('wallpapers', id);
     } catch (error) {
       console.error('Error eliminando wallpaper:', error);
@@ -197,7 +197,7 @@ export class WallpaperProvider {
   // Busco wallpapers por título o descripción
   async searchWallpapers(searchTerm: string, isPublicOnly: boolean = true): Promise<WallpaperData[]> {
     try {
-      // Esta es una implementación básica que obtiene todos los documentos y filtra
+      // Esta es una implementación básica que obtengo todos los documentos y filtro
       const conditions: Array<{field: string, operator: any, value: any}> = [];
       
       if (isPublicOnly) {
@@ -216,7 +216,7 @@ export class WallpaperProvider {
         'desc'
       );
 
-      // Filtrar por término de búsqueda
+      // Filtro por término de búsqueda
       const searchTermLower = searchTerm.toLowerCase();
       return (documents as WallpaperData[]).filter(wallpaper => 
         wallpaper.title.toLowerCase().includes(searchTermLower) ||

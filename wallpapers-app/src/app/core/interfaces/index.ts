@@ -1,5 +1,5 @@
-// User interfaces
+// Interfaces de usuario
 export * from './user.interface';
 
-// Wallpaper interfaces
+// Interfaces de wallpapers
 export * from './wallpaper.interface';

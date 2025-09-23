@@ -21,18 +21,18 @@
     </ion-toolbar>
   </ion-header>
 
-  <!-- Refresher -->
+  <!-- Actualizador -->
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <!-- Loading State -->
+  <!-- Estado de carga -->
   <div *ngIf="isLoading" class="loading-container">
     <ion-spinner name="crescent"></ion-spinner>
     <p>{{ translationService.translate('myGallery.loading') }}</p>
   </div>
 
-  <!-- Empty State -->
+  <!-- Estado vacío -->
   <div *ngIf="!isLoading && wallpapers.length === 0" class="empty-state">
     <ion-icon name="images-outline" size="large" color="medium"></ion-icon>
     <h2>{{ translationService.translate('myGallery.emptyTitle') }}</h2>
@@ -43,10 +43,10 @@
     </ion-button>
   </div>
 
-  <!-- Wallpapers Grid -->
+  <!-- Cuadrícula de wallpapers -->
   <div *ngIf="!isLoading && wallpapers.length > 0" class="wallpapers-grid">
     <ion-card *ngFor="let wallpaper of wallpapers" class="wallpaper-card">
-      <!-- Wallpaper Image -->
+      <!-- Imagen del wallpaper -->
       <div class="wallpaper-image-container">
         <img 
           [src]="wallpaper.thumbnailUrl || wallpaper.imageUrl" 
@@ -66,19 +66,19 @@
         </div>
       </div>
 
-      <!-- Wallpaper Info -->
+      <!-- Información del wallpaper -->
       <ion-card-content>
         <h3>{{ wallpaper.title }}</h3>
         <p *ngIf="wallpaper.description">{{ wallpaper.description }}</p>
         
-        <!-- Tags -->
+        <!-- Etiquetas -->
         <div *ngIf="wallpaper.tags && wallpaper.tags.length > 0" class="tags-container">
           <ion-chip *ngFor="let tag of wallpaper.tags" color="primary" outline>
             <ion-label>{{ tag }}</ion-label>
           </ion-chip>
         </div>
 
-        <!-- Category -->
+        <!-- Categoría -->
         <div *ngIf="wallpaper.category" class="category-container">
           <ion-chip color="secondary" outline>
             <ion-icon name="folder-outline" slot="start"></ion-icon>
@@ -86,7 +86,7 @@
           </ion-chip>
         </div>
 
-        <!-- Date -->
+        <!-- Fecha -->
         <p class="date-text">
           <ion-icon name="calendar-outline"></ion-icon>
           {{ wallpaper.createdAt | date:'short' }}
@@ -95,7 +95,7 @@
     </ion-card>
   </div>
 
-  <!-- Floating Action Button -->
+  <!-- Botón de acción flotante -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
     <ion-fab-button color="primary" (click)="navigateToUpload()">
       <ion-icon name="add-outline"></ion-icon>

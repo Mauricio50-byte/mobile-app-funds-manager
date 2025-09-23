@@ -20,16 +20,16 @@
   </ion-header>
 
   <div class="update-container">
-    <!-- Header Section -->
+    <!-- Sección del encabezado -->
     <div class="header-section">
       <ion-icon name="person-circle-outline" size="large" color="primary"></ion-icon>
       <h1>{{ translationService.translate('updateUserInfo.welcome') }}</h1>
       <p>{{ translationService.translate('updateUserInfo.subtitle') }}</p>
     </div>
 
-    <!-- Update Form -->
+    <!-- Formulario de actualización -->
     <form [formGroup]="updateForm" (ngSubmit)="onUpdateUserInfo()">
-      <!-- Name Field -->
+      <!-- Campo de nombre -->
       <app-input
         [label]="translationService.translate('common.name')"
         type="text"
@@ -39,7 +39,7 @@
         [errorMessage]="getNameErrorMessage()">
       </app-input>
 
-      <!-- Last Name Field -->
+      <!-- Campo de apellido -->
       <app-input
         [label]="translationService.translate('common.lastName')"
         type="text"
@@ -49,7 +49,7 @@
         [errorMessage]="getLastNameErrorMessage()">
       </app-input>
 
-      <!-- Email Field (Read-only) -->
+      <!-- Campo de email (solo lectura) -->
       <app-input
         [label]="translationService.translate('common.email')"
         type="email"
@@ -59,7 +59,7 @@
         [showError]="false">
       </app-input>
 
-      <!-- Phone Field -->
+      <!-- Campo de teléfono -->
       <app-input
         [label]="translationService.translate('updateUserInfo.phone')"
         type="tel"
@@ -67,7 +67,7 @@
         formControlName="phone">
       </app-input>
 
-      <!-- Bio Field -->
+      <!-- Campo de biografía -->
       <div class="bio-field">
         <ion-item>
           <ion-label position="stacked">{{ translationService.translate('updateUserInfo.bio') }}</ion-label>
@@ -80,7 +80,7 @@
         </ion-item>
       </div>
 
-      <!-- Action Buttons -->
+      <!-- Botones de acción -->
       <div class="button-container">
         <app-button
           [text]="translationService.translate('updateUserInfo.updateButton')"
@@ -101,7 +101,7 @@
       </div>
     </form>
 
-    <!-- Profile Picture Section -->
+    <!-- Sección de foto de perfil -->
     <div class="profile-picture-section">
       <h3>{{ translationService.translate('updateUserInfo.profilePicture') }}</h3>
       <div class="picture-container">

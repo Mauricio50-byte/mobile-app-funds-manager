@@ -7,7 +7,7 @@ export const noAuthGuard: CanActivateFn = async (route, state) => {
   const router = inject(Router);
 
   try {
-    // Verificar si el usuario NO está autenticado
+    // Verifico si el usuario NO está autenticado
     const user = await auth.getCurrentUser();
     
     if (!user) {
@@ -16,14 +16,14 @@ export const noAuthGuard: CanActivateFn = async (route, state) => {
     } else {
       console.log('Usuario ya autenticado, redirigiendo al home desde:', state.url);
       
-      // Si ya está autenticado, redirigir al home
+      // Si ya está autenticado, redirijo al home
       router.navigate(['/home']);
       return false;
     }
   } catch (error) {
     console.error('Error en no-auth guard:', error);
     
-    // En caso de error, permitir acceso (asumir que no está autenticado)
+    // En caso de error, permito acceso (asumo que no está autenticado)
     return true;
   }
 };

@@ -16,7 +16,7 @@ export class Uploader {
   private supabase: SupabaseClient | null = null;
 
   constructor() {
-    // No inicializar Supabase en el constructor para evitar problemas de dependencia circular
+    // No inicializo Supabase en el constructor para evitar problemas de dependencia circular
   }
 
   private getSupabaseClient(): SupabaseClient {
@@ -57,7 +57,7 @@ export class Uploader {
     return this.supabase;
   }
 
-  // REMOVIDO: No intentar crear bucket programáticamente
+  // REMOVIDO: No intento crear bucket programáticamente
   // El bucket debe existir y ser creado manualmente en el dashboard
 
   async uploadImage(file: File, userUid?: string): Promise<UploadResult> {
@@ -77,7 +77,7 @@ export class Uploader {
         };
       }
 
-      // Verificar y crear el bucket si no existe
+      // Verifico y creo el bucket si no existe
       console.log('🔍 Verificando si el bucket "wallpapers-app" existe...');
       await this.ensureBucketExists();
 
@@ -118,7 +118,7 @@ export class Uploader {
       console.log('✅ Archivo subido exitosamente a Supabase Storage!');
       console.log('📊 Datos de subida:', data);
 
-      // Para bucket público, usar getPublicUrl en lugar de signedUrl
+      // Para bucket público, uso getPublicUrl en lugar de signedUrl
       console.log('🔗 Generando URL pública...');
       const { data: urlData } = supabase.storage
         .from('wallpapers-app')
@@ -249,7 +249,7 @@ export class Uploader {
     try {
       const supabase = this.getSupabaseClient();
       
-      // Primero intentar hacer una operación simple en el bucket para verificar si existe
+      // Primero intento hacer una operación simple en el bucket para verificar si existe
       const { data: testData, error: testError } = await supabase.storage
         .from('wallpapers-app')
         .list('', { limit: 1 });
@@ -259,7 +259,7 @@ export class Uploader {
         return;
       }
 
-      // Si el error es "Bucket not found", intentamos crear el bucket
+      // Si el error es "Bucket not found", intento crear el bucket
       if (testError.message?.includes('Bucket not found')) {
         console.log('🔨 El bucket no existe, intentando crearlo...');
         
@@ -276,7 +276,7 @@ export class Uploader {
             console.warn('📋 Por favor, crea el bucket "wallpapers-app" manualmente en el dashboard de Supabase.');
             console.warn('🔧 O ejecuta las políticas SQL desde supabase-storage-policies.sql');
             
-            // Intentar continuar asumiendo que el bucket existe
+            // Intento continuar asumiendo que el bucket existe
             return;
           }
           
@@ -286,13 +286,13 @@ export class Uploader {
 
         console.log('✅ Bucket "wallpapers-app" creado exitosamente');
       } else {
-        // Otro tipo de error, pero intentamos continuar
+        // Otro tipo de error, pero intento continuar
         console.warn('⚠️ Error verificando bucket, pero continuando:', testError.message);
       }
       
     } catch (error) {
       console.warn('⚠️ Error en ensureBucketExists, pero continuando con la subida:', error);
-      // No lanzamos el error para permitir que la subida continúe
+      // No lanzo el error para permitir que la subida continúe
       // El bucket podría existir pero tener problemas de permisos de listado
     }
   }

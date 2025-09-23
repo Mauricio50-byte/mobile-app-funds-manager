@@ -20,7 +20,7 @@
 <ion-content [fullscreen]="true">
   <form [formGroup]="uploadForm" class="upload-form">
     
-    <!-- Image Selection Section -->
+    <!-- Sección de selección de imagen -->
     <div class="image-section">
       <div class="image-container" *ngIf="!imagePreview" (click)="selectImage()">
         <ion-icon name="camera" class="camera-icon"></ion-icon>
@@ -44,10 +44,10 @@
       </div>
     </div>
 
-    <!-- Form Fields -->
+    <!-- Campos del formulario -->
     <div class="form-fields">
       
-      <!-- Title Field -->
+      <!-- Campo de título -->
       <ion-item>
         <ion-label position="stacked">
           {{ translationService.translate('upload.titleLabel') }} *
@@ -67,7 +67,7 @@
         </span>
       </div>
 
-      <!-- Description Field -->
+      <!-- Campo de descripción -->
       <ion-item>
         <ion-label position="stacked">
           {{ translationService.translate('upload.descriptionLabel') }}
@@ -80,7 +80,7 @@
         </ion-textarea>
       </ion-item>
 
-      <!-- Category Field -->
+      <!-- Campo de categoría -->
       <ion-item>
         <ion-label position="stacked">
           {{ translationService.translate('upload.categoryLabel') }} *
@@ -102,7 +102,7 @@
         </span>
       </div>
 
-      <!-- Tags Field -->
+      <!-- Campo de etiquetas -->
       <ion-item>
         <ion-label position="stacked">
           {{ translationService.translate('upload.tagsLabel') }}
@@ -116,7 +116,7 @@
         {{ translationService.translate('upload.tagsNote') }}
       </ion-note>
 
-      <!-- Public Toggle -->
+      <!-- Interruptor público -->
       <ion-item>
         <ion-label>
           <h3>{{ translationService.translate('upload.makePublic') }}</h3>
@@ -130,7 +130,7 @@
 
     </div>
 
-    <!-- Upload Button -->
+    <!-- Botón de subida -->
     <div class="upload-button-container">
       <ion-button 
         expand="block" 

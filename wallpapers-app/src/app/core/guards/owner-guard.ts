@@ -8,7 +8,7 @@ export const ownerGuard: CanActivateFn = async (route: ActivatedRouteSnapshot, s
   const router = inject(Router);
 
   try {
-    // Verificar si el usuario está autenticado
+    // Verifico si el usuario está autenticado
     const user = authProvider.getCurrentUser();
     
     if (!user) {
@@ -19,7 +19,7 @@ export const ownerGuard: CanActivateFn = async (route: ActivatedRouteSnapshot, s
       return false;
     }
 
-    // Obtener el ID del wallpaper de los parámetros de la ruta
+    // Obtengo el ID del wallpaper de los parámetros de la ruta
     const wallpaperId = route.paramMap.get('id');
     
     if (!wallpaperId) {
@@ -28,7 +28,7 @@ export const ownerGuard: CanActivateFn = async (route: ActivatedRouteSnapshot, s
       return false;
     }
 
-    // Verificar si el wallpaper existe y pertenece al usuario
+    // Verifico si el wallpaper existe y pertenece al usuario
     const wallpaper = await wallpaperProvider.getWallpaperById(wallpaperId);
     
     if (!wallpaper) {

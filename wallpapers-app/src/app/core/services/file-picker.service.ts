@@ -7,7 +7,7 @@ import { Injectable } from '@angular/core';
 
     constructor() { }
 
-    // Aquí implementé el método para seleccionar imágenes desde el dispositivo con validaciones
+    // Implemento el método para seleccionar imágenes desde el dispositivo con validaciones
     async pickImage(): Promise<File | null> {
         return new Promise((resolve, reject) => {
         const input = document.createElement('input');
@@ -17,13 +17,13 @@ import { Injectable } from '@angular/core';
         input.onchange = (event: any) => {
             const file = event.target.files[0];
             if (file) {
-            // Validar que sea una imagen
+            // Valido que sea una imagen
             if (!file.type.startsWith('image/')) {
                 reject(new Error('El archivo seleccionado no es una imagen válida'));
                 return;
             }
             
-            // Validar tamaño (máximo 10MB)
+            // Valido tamaño (máximo 10MB)
             const maxSize = 10 * 1024 * 1024; // 10MB
             if (file.size > maxSize) {
                 reject(new Error('La imagen es demasiado grande. Máximo 10MB'));
@@ -48,7 +48,7 @@ import { Injectable } from '@angular/core';
         });
     }
 
-    // Aquí creé el método para generar vista previa de imágenes seleccionadas
+    // Creo el método para generar vista previa de imágenes seleccionadas
     createImagePreview(file: File): Promise<string> {
         return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -69,13 +69,13 @@ import { Injectable } from '@angular/core';
         });
     }
 
-    // Aquí desarrollé la validación de tipos de archivo de imagen permitidos
+    // Desarrollo la validación de tipos de archivo de imagen permitidos
     isValidImage(file: File): boolean {
         const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
         return validTypes.includes(file.type);
     }
 
-    // Aquí implementé el método para obtener información detallada del archivo
+    // Implemento el método para obtener información detallada del archivo
     getFileInfo(file: File) {
         return {
         name: file.name,
@@ -86,7 +86,7 @@ import { Injectable } from '@angular/core';
         };
     }
 
-    // Aquí creé el método para formatear el tamaño del archivo en formato legible
+    // Creo el método para formatear el tamaño del archivo en formato legible
     private formatFileSize(bytes: number): string {
         if (bytes === 0) return '0 Bytes';
         

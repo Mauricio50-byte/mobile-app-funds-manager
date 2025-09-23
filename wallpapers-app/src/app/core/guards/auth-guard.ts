@@ -7,7 +7,7 @@ export const authGuard: CanActivateFn = async (route, state) => {
   const router = inject(Router);
 
   try {
-    // Verificar si el usuario está autenticado
+    // Verifico si el usuario está autenticado
     const isAuthenticated = authProvider.isAuthenticated();
     const user = authProvider.getCurrentUser();
     
@@ -17,10 +17,10 @@ export const authGuard: CanActivateFn = async (route, state) => {
     } else {
       console.log('Usuario no autenticado, redirigiendo al login desde:', state.url);
       
-      // Guardar la URL a la que intentaba acceder para redirigir después del login
+      // Guardo la URL a la que intentaba acceder para redirigir después del login
       const returnUrl = state.url !== '/login' ? state.url : '/home';
       
-      // Redirigir al login con la URL de retorno
+      // Redirijo al login con la URL de retorno
       router.navigate(['/login'], { 
         queryParams: { returnUrl } 
       });
@@ -30,7 +30,7 @@ export const authGuard: CanActivateFn = async (route, state) => {
   } catch (error) {
     console.error('Error en auth guard:', error);
     
-    // En caso de error, redirigir al login por seguridad
+    // En caso de error, redirijo al login por seguridad
     router.navigate(['/login']);
     return false;
   }

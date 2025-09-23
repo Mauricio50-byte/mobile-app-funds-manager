@@ -17,7 +17,7 @@ export class AuthProvider {
     private query: Query,
     private firebaseConfig: FirebaseConfigService
   ) {
-    // Escuchar cambios en el estado de autenticación
+    // Escucho cambios en el estado de autenticación
     this.auth.onAuthStateChanged(async (user: User | null) => {
       if (user) {
         try {
@@ -25,7 +25,7 @@ export class AuthProvider {
           this.currentUserSubject.next(userData);
         } catch (error) {
           console.error('Error obteniendo datos del usuario en onAuthStateChanged:', error);
-          // Si no se pueden obtener los datos de Firestore, crear un usuario básico
+          // Si no puedo obtener los datos de Firestore, creo un usuario básico
           const basicUserData: UserData = {
             uid: user.uid,
             name: user.displayName?.split(' ')[0] || 'Usuario',
@@ -110,7 +110,7 @@ export class AuthProvider {
         createdAt: new Date()
       };
 
-      // Guardar datos del usuario en Firestore
+      // Guardo datos del usuario en Firestore
       await this.query.createDocument('users', userData.uid, userData);
       
       this.currentUserSubject.next(userData);
@@ -166,7 +166,7 @@ export class AuthProvider {
       try {
         // Manejo específico de errores de Firestore
         if (this.isNetworkError(error)) {
-          // Devolver datos básicos del usuario si no hay conexión
+          // Devuelvo datos básicos del usuario si no hay conexión
           return {
             uid: uid,
             name: 'Usuario',
@@ -179,7 +179,7 @@ export class AuthProvider {
         throw new Error('Error al obtener datos del usuario. Intenta nuevamente.');
       } catch (handlingError) {
         console.error('Error manejando error de getUserData:', handlingError);
-        // Fallback: devolver datos básicos
+        // Fallback: devuelvo datos básicos
         return {
           uid: uid,
           name: 'Usuario',
@@ -208,7 +208,7 @@ export class AuthProvider {
 
       await this.query.updateDocument('users', currentUser.uid, updatedData);
       
-      // Actualizar el usuario actual
+      // Actualizo el usuario actual
       const updatedUser = { ...currentUser, ...updatedData };
       this.currentUserSubject.next(updatedUser);
     } catch (error) {
@@ -308,12 +308,12 @@ export class AuthProvider {
         throw new Error('No se pudo obtener información del usuario de Google');
       }
 
-      // Verificar si el usuario ya existe en Firestore
+      // Verifico si el usuario ya existe en Firestore
       let userData: UserData;
       try {
         userData = await this.getUserData(result.user.uid);
       } catch (error) {
-        // Usuario nuevo, crear documento en Firestore
+        // Usuario nuevo, creo documento en Firestore
         try {
           if (!result.user.email) {
             throw new Error('No se pudo obtener el email del usuario de Google');
@@ -330,7 +330,7 @@ export class AuthProvider {
           await this.query.createDocument('users', userData.uid, userData);
         } catch (createError) {
           console.error('Error creando usuario en Firestore:', createError);
-          // Fallback: crear datos básicos del usuario sin guardar en Firestore
+          // Fallback: creo datos básicos del usuario sin guardar en Firestore
           userData = {
             uid: result.user.uid,
             name: result.user.displayName?.split(' ')[0] || 'Usuario',

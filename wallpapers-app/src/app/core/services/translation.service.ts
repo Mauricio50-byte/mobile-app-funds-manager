@@ -36,39 +36,39 @@ export class TranslationService {
       return this.loadingPromise;
     }
 
-    // Detectar idioma del navegador primero
+    // Detecto idioma del navegador primero
     const browserLang = navigator.language.split('-')[0] as Language;
     this.currentLanguage = this.supportedLanguages.includes(browserLang) ? browserLang : 'es';
     
-    // Cargar idioma guardado
+    // Cargo idioma guardado
     const savedLang = localStorage.getItem('language') as Language;
     if (savedLang && this.supportedLanguages.includes(savedLang)) {
       this.currentLanguage = savedLang;
     }
 
-    // Emitir el idioma inmediatamente para que la UI no se bloquee
+    // Emito el idioma inmediatamente para que la UI no se bloquee
     this.languageSubject.next(this.currentLanguage);
     this.currentLanguageSubject.next(this.currentLanguage);
 
-    // Cargar traducciones de forma asíncrona sin bloquear la UI
+    // Cargo traducciones de forma asíncrona sin bloquear la UI
     this.loadingPromise = this.loadTranslations();
     
-    // En dispositivos móviles, no esperar las traducciones para continuar
+    // En dispositivos móviles, no espero las traducciones para continuar
     if (typeof window !== 'undefined' && (window as any).Capacitor) {
-      // Marcar como cargado inmediatamente en móviles para evitar bloqueos
+      // Marco como cargado inmediatamente en móviles para evitar bloqueos
       this.translationsLoaded = true;
-      // Cargar traducciones en background
+      // Cargo traducciones en background
       this.loadingPromise.catch(error => {
         console.warn('Background translation loading failed:', error);
       });
     } else {
-      // En web, esperar las traducciones
+      // En web, espero las traducciones
       try {
         await this.loadingPromise;
         this.translationsLoaded = true;
       } catch (error) {
         console.error('Translation loading failed:', error);
-        this.translationsLoaded = true; // Marcar como cargado para continuar
+        this.translationsLoaded = true; // Marco como cargado para continuar
       }
     }
   }
@@ -93,7 +93,7 @@ export class TranslationService {
         timeoutPromise
       ]);
 
-      // Verificar que las traducciones se cargaron correctamente
+      // Verifico que las traducciones se cargaron correctamente
       if (esTranslations && Object.keys(esTranslations).length > 0 && 
           enTranslations && Object.keys(enTranslations).length > 0) {
         this.translations.es = esTranslations;
@@ -103,7 +103,7 @@ export class TranslationService {
           en: Object.keys(enTranslations).length 
         });
         
-        // Actualizar el estado de carga después de cargar exitosamente
+        // Actualizo el estado de carga después de cargar exitosamente
         if (!this.translationsLoaded) {
           this.translationsLoaded = true;
         }
@@ -206,7 +206,7 @@ export class TranslationService {
       return;
     }
     
-    // En dispositivos móviles, no esperar las traducciones para evitar bloqueos
+    // En dispositivos móviles, no espero las traducciones para evitar bloqueos
     const isMobile = typeof window !== 'undefined' && (window as any).Capacitor;
     if (isMobile) {
       console.log('Mobile device detected, skipping translation wait');
@@ -218,7 +218,7 @@ export class TranslationService {
     const timeoutPromise = new Promise<void>((resolve) => {
       setTimeout(() => {
         console.warn('Translation loading timeout, continuing with fallbacks');
-        this.translationsLoaded = true; // Marcar como cargado para evitar más bloqueos
+        this.translationsLoaded = true; // Marco como cargado para evitar más bloqueos
         resolve();
       }, 3000); // 3 segundos de timeout para web
     });
@@ -229,10 +229,10 @@ export class TranslationService {
       } catch (error) {
         console.error('Error loading translations:', error);
         this.setFallbackTranslations();
-        this.translationsLoaded = true; // Marcar como cargado para continuar
+        this.translationsLoaded = true; // Marco como cargado para continuar
       }
     } else {
-      // Si no hay promesa de carga, marcar como cargado inmediatamente
+      // Si no hay promesa de carga, marco como cargado inmediatamente
       this.translationsLoaded = true;
     }
   }
@@ -242,14 +242,14 @@ export class TranslationService {
     
     const currentLang = this.getCurrentLanguage();
     
-    // Si las traducciones no están cargadas aún, retornar fallback sin warning
+    // Si las traducciones no están cargadas aún, retorno fallback sin warning
     if (!this.translationsLoaded) {
       return this.getFallbackTranslation(key);
     }
     
-    // Verificar si las traducciones están cargadas
+    // Verifico si las traducciones están cargadas
     if (!this.translations[currentLang] || Object.keys(this.translations[currentLang]).length === 0) {
-      // Solo mostrar warning una vez cuando ya deberían estar cargadas
+      // Solo muestro warning una vez cuando ya deberían estar cargadas
       if (this.translationsLoaded) {
         console.warn(`Translations not loaded for language: ${currentLang}, using fallback`);
       }
@@ -262,7 +262,7 @@ export class TranslationService {
       return this.interpolateParams(translation, params);
     }
     
-    // Fallback al idioma por defecto si no encuentra en el idioma actual
+    // Fallback al idioma por defecto si no encuentro en el idioma actual
     if (currentLang !== 'es') {
       const fallbackTranslation = this.getNestedTranslation(this.translations.es, key);
       if (typeof fallbackTranslation === 'string') {
@@ -355,14 +355,14 @@ export class TranslationService {
     const isMobile = typeof window !== 'undefined' && (window as any).Capacitor;
     
     if (isMobile) {
-      // En móviles, no bloquear la carga
+      // En móviles, no bloqueo la carga
       console.log('Mobile device: initializing translations in background');
       this.waitForTranslations().catch(error => {
         console.warn('Background translation loading failed:', error);
       });
       return;
     } else {
-      // En web, esperar con timeout corto
+      // En web, espero con timeout corto
       try {
         await Promise.race([
           this.waitForTranslations(),
